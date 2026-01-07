@@ -2,7 +2,7 @@ local drawableRectangle = require('structs.drawable_rectangle')
 local utils = require("utils")
 
 local UnholdableBarrier = {
-    name = "CyrusSandbox/UnholdableBarrier",
+    name = "AletrisSandbox/UnholdableBarrier",
     depth = -8500,
     placements = {
         {

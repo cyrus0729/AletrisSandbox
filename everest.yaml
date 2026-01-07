@@ -1,6 +1,10 @@
-- Name: CyrusSandbox
+- Name: AletrisSandbox
   Version: 0.1.0
-  DLL: bin/CyrusSandbox.dll
+  DLL: bin/AletrisSandbox.dll
   Dependencies:
     - Name: EverestCore
       Version: 1.4465.0
+    - Name: FrostHelper
+      Version: 1.46.0
+    - Name: ExtendedVariantMode
+      Version: 0.29.3

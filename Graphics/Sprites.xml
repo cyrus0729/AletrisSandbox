@@ -1,41 +1,53 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Sprites>
-    <needleEntity path="objects/CyrusSandbox/needleEntity/" start="needle">
+
+    <NeedleEntity path="danger/AletrisSandbox/NeedleEntity/" start="idle">
+		<Justify x="0.5" y="0.5"/>
+        <Loop id="idle" path="needle" delay="0.1"/>
+    </NeedleEntity>
+
+    <MiniNeedleEntity path="danger/AletrisSandbox/NeedleEntity/" start="idle">
+		<Justify x="0.5" y="0.5"/>
+        <Loop id="idle" path="mini" delay="0.1"/>
+    </MiniNeedleEntity>
+
+    <CherryEntity path="danger/AletrisSandbox/CherryEntity/" start="idle">
+			<Justify x="0.5" y="0.5"/>
+        <Loop id="idle" path="idle" delay="0.5"/>
+    </CherryEntity>
+
+    <CherryEntityBig path="danger/AletrisSandbox/CherryEntity/" start="idle">
         <Justify x="0.5" y="0.5"/>
-        <Loop id="needle" path="needle" delay="0.1" frames="0" />
-    </needleEntity>
+		<Loop id="idle" path="bigidle" delay="0.5"/>
+    </CherryEntityBig>
 
-    <miniNeedleEntity path="objects/CyrusSandbox/needleEntity/" start="mini">
-        <Justify x="0.5" y="0.5"/>
-        <Loop id="mini" path="mini" delay="0.1" frames="0" />
-    </miniNeedleEntity>
+    <DeathCubeEntity path="danger/AletrisSandbox/DeathCubeEntity/" start="idle">
+		<Justify x="0.5" y="0.5"/>	
+		<Loop id="idle" path="idle" delay="0.1"/>
+    </DeathCubeEntity>
 
-    <cherryEntity path="objects/CyrusSandbox/cherryEntity/" start="idle">
-        <Justify x="0.5" y="0.5"/>
-        <Loop id="idle" path="idle" delay="0.5" frames="0-1" />
-    </cherryEntity>
-
-    <cherryEntityBig path="objects/CyrusSandbox/cherryEntityBig/" start="idle">
-        <Justify x="0.5" y="0.5"/>
-        <Loop id="idle" path="idle" delay="0.5" frames="0-1" />
-    </cherryEntityBig>
-
-    <DeathcubeEntity path="objects/CyrusSandbox/DeathcubeEntity/" start="idle">
-	 <Justify x="0.5" y="0.5"/>	
-	 <Loop id="idle" path="idle" delay="0.1" frames="0" />
-    </DeathcubeEntity>
-
-    <InteractiveEntity path="characters/CyrusSandbox/InteractiveEntity/" start="sunnyIdle">
-	<Origin x="8" y="16"/>
-	<Loop id="sunnyIdle" path="sunny/idle" delay="0.5" frames="0-4" />
-	<Loop id="sunnyPetting" path="sunny/pet" delay="0.25" frames="0-10" />
-	<Loop id="birdIdle" path="bird/crow" delay="0" frames="0-47" />
-	<Loop id="birdPetting" path="bird/pet" delay="0.25" frames="0-10" />
+    <InteractiveEntity path="characters/AletrisSandbox/InteractiveEntity/" start="sunnyIdle">
+		<Origin x="8" y="16"/>
+		<Loop id="sunnyIdle" path="sunny/idle" delay="0.5" frames="0-4" />
+		<Loop id="sunnyPetting" path="sunny/pet" delay="0.25" frames="0-10" />
+		<Loop id="birdIdle" path="bird/crow" delay="0" frames="0-47" />
+		<Loop id="birdPetting" path="bird/pet" delay="0.25" frames="0-10" />
     </InteractiveEntity>
 
-    <PlayerInteract path="characters/CyrusSandbox/InteractiveEntity/" start="plrPetting"> 
-	<Origin x="22" y="24"/>
-	<Loop id="plrPetting" path="playerAnims/petting" delay="0.25" frames="0-10"/>
+    <PlayerInteract path="characters/AletrisSandbox/InteractiveEntity/" start="plrPetting"> 
+		<Origin x="22" y="24"/>
+		<Loop id="plrPetting" path="playerAnims/petting" delay="0.25" frames="0-10"/>
     </PlayerInteract>
+	
+	<BlackHole path="AletrisSandbox/ModifiedBlackHole/" start="Blackhole"> 
+		<Origin x="-0.5" y="-0.5"/>
+		<Loop id="Blackhole" path="Blackhole" delay="0.1"/>
+    </BlackHole>
+	
+	<BHAura path="AletrisSandbox/ModifiedBlackHole/" start="Aura"> 
+		<Origin x="-0.5" y="-0.5"/>
+		<Loop id="Aura" path="Aura" delay="0.1"/>
+    </BHAura>
+
 
 </Sprites>

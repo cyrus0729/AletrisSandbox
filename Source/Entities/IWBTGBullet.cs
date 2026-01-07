@@ -7,9 +7,9 @@ using Monocle;
 // without them this would not have worked
 
 
-namespace Celeste.Mod.CyrusSandbox.Entities
+namespace Celeste.Mod.AletrisSandbox.Entities
 {
-    [CustomEntity("CyrusSandbox/IWBTGBullet")]
+    [CustomEntity("AletrisSandbox/IWBTGBullet")]
     [Tracked]
     public class IWBTGBullet : Actor
     {
@@ -38,12 +38,12 @@ namespace Celeste.Mod.CyrusSandbox.Entities
             lifetime = 6000;
 
             (owner.Scene as Level).Add(this);
-            Add(new Image(GFX.Game["CyrusSandbox/gun/bullet"]));
+            Add(new Image(GFX.Game["AletrisSandbox/gun/bullet"]));
         }
 
         private void OnCollideH(CollisionData data)
         {
-            if (!(CyrusSandboxModule.Settings.IWBTGGunOptions.IWBTGGunHitsStuffOverride || CyrusSandboxModule.Session.IWBTGGunHitsStuff))
+            if (!(AletrisSandboxModule.Settings.IWBTOptions.IWBTGGunHitsStuffOverride || AletrisSandboxModule.Session.IWBTGGunHitsStuff))
             {
                 Kill();
                 return;
@@ -53,7 +53,7 @@ namespace Celeste.Mod.CyrusSandbox.Entities
 
         private void OnCollideV(CollisionData data)
         {
-            if (!(CyrusSandboxModule.Settings.IWBTGGunOptions.IWBTGGunHitsStuffOverride || CyrusSandboxModule.Session.IWBTGGunHitsStuff))
+            if (!(AletrisSandboxModule.Settings.IWBTOptions.IWBTGGunHitsStuffOverride || AletrisSandboxModule.Session.IWBTGGunHitsStuff))
             {
                 Kill();
                 return;
@@ -88,7 +88,7 @@ namespace Celeste.Mod.CyrusSandbox.Entities
 
 
 
-            foreach (CyrusSandboxModule.BulletCollider collider in Scene.Tracker.GetComponents<CyrusSandboxModule.BulletCollider>())
+            foreach (AletrisSandboxModule.BulletCollider collider in Scene.Tracker.GetComponents<AletrisSandboxModule.BulletCollider>())
             {
                 if (collider.Check(this))
                 {

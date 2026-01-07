@@ -1,6 +1,6 @@
 local InteractiveEntity = {}
 
-InteractiveEntity.name = "CyrusSandbox/InteractiveEntity"
+InteractiveEntity.name = "AletrisSandbox/InteractiveEntity"
 InteractiveEntity.depth = -8500
 
 InteractiveEntity.placements = {
@@ -22,7 +22,7 @@ InteractiveEntity.placements = {
 }
 
 function InteractiveEntity.texture(room, entity)
-    local sprite = "characters/CyrusSandbox/InteractiveEntity/sunny/idle00"
+    local sprite = "characters/AletrisSandbox/InteractiveEntity/sunny/idle00"
     return sprite
 end
 

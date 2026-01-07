@@ -2,36 +2,28 @@ local drawableSprite = require('structs.drawable_sprite')
 
 local HitboxController = {}
 
-HitboxController.name = "CyrusSandbox/HitboxController"
+HitboxController.name = "AletrisSandbox/HitboxController"
 
 HitboxController.placements = {
     {
         name = "Hitbox Controller",
         data = {
-            advancedMode = false,
             modifyHitbox = true,
-            Hitbox = "8,11",
-            duckHitbox = "8,6",
-            featherHitbox = "8,8",
-            Hurtbox = "8,9",
-            duckHurtbox = "8,4",
-            featherHurtbox = "6,6",
-
-            HitboxOffset = "-4,-11",
-            duckHitboxOffset = "-4,-6",
-            featherHitboxOffset = "-4,-10",
-            HurtboxOffset = "-4,-11",
-            duckHurtboxOffset = "-4,-6",
-            featherHurtboxOffset = "-3,-9",
+            Hitbox = "R:8,11,-4,-11",
+            duckHitbox = "R:8,6,-4,-6",
+            featherHitbox = "R:8,8,-4,-10",
+            Hurtbox = "R:8,9,-4,-11",
+            duckHurtbox = "R:8,4,-4,-6",
+            featherHurtbox = "R:6,6,-3,-9",
         }
     }
 }
 
 function HitboxController.texture(room, entity)
     if entity.modifyHitbox then
-        return "objects/CyrusSandbox/HitboxController/catplushthebubble"
+        return "objects/AletrisSandbox/HitboxController/catplushthebubble"
     else
-        return "objects/CyrusSandbox/HitboxController/catplushthenuhble"
+        return "objects/AletrisSandbox/HitboxController/catplushthenuhble"
     end
 end
 

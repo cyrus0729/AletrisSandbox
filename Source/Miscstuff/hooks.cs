@@ -1,10 +1,10 @@
-﻿using Celeste.Mod.CyrusSandbox.Entities;
+﻿using Celeste.Mod.AletrisSandbox.Entities;
 using Microsoft.Xna.Framework;
 using Monocle;
 
 // THANK YOU EVERYBODY IN #CODE_MODDING
 
-namespace Celeste.Mod.CyrusSandbox.GunSupport
+namespace Celeste.Mod.AletrisSandbox.GunSupport
 {
     internal static class VanillaHooks
     {
@@ -27,21 +27,21 @@ namespace Celeste.Mod.CyrusSandbox.GunSupport
         {
             void CollisionHandler(IWBTGBullet bullet)
             {
-                if (!(CyrusSandboxModule.Settings.IWBTGGunOptions.IWBTGGunHitsStuffOverride || CyrusSandboxModule.Session.IWBTGGunHitsStuff)) { return; }
+                if (!(AletrisSandboxModule.Settings.IWBTOptions.IWBTGGunHitsStuffOverride || AletrisSandboxModule.Session.IWBTGGunHitsStuff)) { return; }
                 bullet.Kill();
-                if (!(CyrusSandboxModule.Settings.IWBTGGunOptions.IWBTGGunDestroyStuffOverride || CyrusSandboxModule.Session.IWBTGGunDestroysStuff)) { return; }
+                if (!(AletrisSandboxModule.Settings.IWBTOptions.IWBTGGunDestroyStuffOverride || AletrisSandboxModule.Session.IWBTGGunDestroysStuff)) { return; }
                 self.Destroy();
             }
 
             orig(self, position, attachToSolid, color);
-            self.Add(new CyrusSandboxModule.BulletCollider(CollisionHandler, self.Collider));
+            self.Add(new AletrisSandboxModule.BulletCollider(CollisionHandler, self.Collider));
         }
 
         private static void KevinHook(On.Celeste.CrushBlock.orig_ctor_Vector2_float_float_Axes_bool orig, CrushBlock self, Vector2 position, float width, float height, CrushBlock.Axes axes, bool chillOut)
         {
             void CollisionHandler(IWBTGBullet bullet)
             {
-                if (!(CyrusSandboxModule.Settings.IWBTGGunOptions.IWBTGGunHitsStuffOverride || CyrusSandboxModule.Session.IWBTGGunHitsStuff)) { return; }
+                if (!(AletrisSandboxModule.Settings.IWBTOptions.IWBTGGunHitsStuffOverride || AletrisSandboxModule.Session.IWBTGGunHitsStuff)) { return; }
                 self.Attack(-bullet.velocity.SafeNormalize());
                 bullet.Kill();
             }
@@ -49,14 +49,14 @@ namespace Celeste.Mod.CyrusSandbox.GunSupport
             orig(self, position, width, height, axes, chillOut);
 
             Collider collidere = new Hitbox(self.Width + 4f, self.Height + 4f, self.Collider.Left - 2f, self.Collider.Top - 2f);
-            self.Add(new CyrusSandboxModule.BulletCollider(CollisionHandler, collidere));
+            self.Add(new AletrisSandboxModule.BulletCollider(CollisionHandler, collidere));
         }
 
         private static void FeatherHook(On.Celeste.FlyFeather.orig_ctor_Vector2_bool_bool orig, FlyFeather self, Vector2 position, bool shielded, bool singleUse)
         {
             void CollisionHandler(IWBTGBullet bullet)
             {
-                if (!(CyrusSandboxModule.Settings.IWBTGGunOptions.IWBTGGunHitsStuffOverride || CyrusSandboxModule.Session.IWBTGGunHitsStuff)) { return; }
+                if (!(AletrisSandboxModule.Settings.IWBTOptions.IWBTGGunHitsStuffOverride || AletrisSandboxModule.Session.IWBTGGunHitsStuff)) { return; }
                 if (!(self.shielded))
                 {
                     self.OnPlayer(bullet.owner);
@@ -73,7 +73,7 @@ namespace Celeste.Mod.CyrusSandbox.GunSupport
                 }
             }
             orig(self, position, shielded, singleUse);
-            self.Add(new CyrusSandboxModule.BulletCollider(CollisionHandler, self.Collider));
+            self.Add(new AletrisSandboxModule.BulletCollider(CollisionHandler, self.Collider));
         }
 
         private static void BumperHook(On.Celeste.Bumper.orig_ctor_Vector2_Nullable1 orig, Bumper self, Vector2 position, Vector2? node)
@@ -107,7 +107,7 @@ namespace Celeste.Mod.CyrusSandbox.GunSupport
             }
 
             orig(self, position, node);
-            self.Add(new CyrusSandboxModule.BulletCollider(CollisionHandler, self.Collider));
+            self.Add(new AletrisSandboxModule.BulletCollider(CollisionHandler, self.Collider));
 
         }
 

@@ -1,7 +1,7 @@
 local sampleEntity = {
-    name = "CyrusSandbox/SampleEntity",
+    name = "AletrisSandbox/SampleEntity",
     depth = -8500,
-    texture = "objects/CyrusSandbox/sampleEntity/idle00",
+    texture = "objects/AletrisSandbox/sampleEntity/idle00",
     placements = {
         {
             name = "normal",

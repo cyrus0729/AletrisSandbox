@@ -1,5 +1,5 @@
 using Celeste;
-using Celeste.Mod.CyrusSandbox;
+using Celeste.Mod.AletrisSandbox;
 using Celeste.Mod.Entities;
 using Microsoft.Xna.Framework;
 using Monocle;
@@ -7,10 +7,10 @@ using System.Collections.Generic;
 
 // THANK YOU *SAMAH*, USSRNAME, MADDIE, AON, DZHAKE
 
-namespace CyrusSandbox.Entities
+namespace AletrisSandbox.Entities
 {
     [Tracked]
-    [CustomEntity("CyrusSandbox/UnholdableBarrier")]
+    [CustomEntity("AletrisSandbox/UnholdableBarrier")]
     public class UnholdableBarrier : Solid
     {
 
@@ -21,7 +21,7 @@ namespace CyrusSandbox.Entities
         private float solidifyDelay;
         protected List<Vector2> particles = new List<Vector2>();
         private List<UnholdableBarrier> adjacent = new List<UnholdableBarrier>();
-        private float[] speeds = new float[3] { 12f, 20f, 40f };
+        private float[] speeds = { 12f, 20f, 40f };
 
         public UnholdableBarrier(EntityData data, Vector2 offset)
             : base(data.Position + offset, data.Width, data.Height, true)
@@ -33,7 +33,7 @@ namespace CyrusSandbox.Entities
                 particles.Add(new Vector2(Calc.Random.NextFloat(base.Width - 1f), Calc.Random.NextFloat(base.Height - 1f)));
             }
             Collidable = false;
-            Add(new CyrusSandboxModule.OnlyBlocksPlayer());
+            Add(new AletrisSandboxModule.OnlyBlocksPlayer());
         }
 
         public override void Render()

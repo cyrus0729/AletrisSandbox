@@ -1,5 +1,5 @@
 local PlayerSpriteSizeTrigger = {
-    name = "CyrusSandbox/PlayerSpriteSizeTrigger",
+    name = "AletrisSandbox/PlayerSpriteSizeTrigger",
     placements = {
         {
             name = "Player Sprite Size Trigger",

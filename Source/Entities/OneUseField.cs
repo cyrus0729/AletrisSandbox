@@ -2,15 +2,15 @@ using Celeste.Mod.Entities;
 using Microsoft.Xna.Framework;
 using Monocle;
 
-namespace Celeste.Mod.CyrusSandbox.Entities
+namespace Celeste.Mod.AletrisSandbox.Entities
 {
-    [CustomEntity("CyrusHelper/OneUseField")]
+    [CustomEntity("AletrisSandbox/OneUseField")]
     public class OneUseField : Entity
     {
         public Color color;
         public Color BorderColor;
-        public Color OnColor;
-        public Color OnBorderColor;
+        public Color ActiveColor;
+        public Color ActiveBorderColor;
         public Color ActivatingColor;
         public Color ActivatingBorderColor;
 
@@ -18,50 +18,75 @@ namespace Celeste.Mod.CyrusSandbox.Entities
         public Color currentRectBorderColor;
 
         public new int depth;
-        private readonly Solid solid;
+
+        public Solid solid;
+        private bool killplayer;
         private bool kill;
         public PlayerCollider pc;
+        private bool hasCollided;
 
         public OneUseField(EntityData data, Vector2 offset) : base(data.Position + offset)
         {
-            kill = data.Bool("kill", false);
+            killplayer = data.Bool("kill", false);
             depth = data.Int("Depth", 8500);
-            base.Depth = depth;
+            Depth = depth;
             color = data.HexColor("inactiveolor", Calc.HexToColor("#00FF00"));
             BorderColor = data.HexColor("inactivebordercolor", Calc.HexToColor("#008800"));
-            OnColor = data.HexColor("activecolor", Calc.HexToColor("#FF0000"));
-            OnBorderColor = data.HexColor("activebordercolor", Calc.HexToColor("#880000"));
+            ActiveColor = data.HexColor("activecolor", Calc.HexToColor("#FF0000"));
+            ActiveBorderColor = data.HexColor("activebordercolor", Calc.HexToColor("#880000"));
             ActivatingColor = data.HexColor("activatingcolor", Calc.HexToColor("#FFFF00"));
             ActivatingBorderColor = data.HexColor("activatingbordercolor", Calc.HexToColor("#888800"));
-            base.Collider = new Hitbox(data.Width, data.Height, 0f, 0f);
+            Collider = new Hitbox(data.Width, data.Height, 0f, 0f);
             Add(pc = new PlayerCollider(OnCollide));
         }
 
         private void OnCollide(Player player)
         {
-            currentRectColor = ActivatingColor;
-            currentRectBorderColor = ActivatingBorderColor;
+            if (OnCollide != null && kill)
+            {
+                player.Die((player.Center - base.Center).SafeNormalize());
+            }
+        }
+
+        public override void Update()
+        {
+            if (Scene.Tracker.GetEntity<Player>() is not { } player) return;
+            bool check = CollideCheck<Player>();
+            if (!hasCollided && check) // player entered
+            {
+                hasCollided = true;
+                currentRectColor = ActivatingColor;
+                currentRectBorderColor = ActivatingBorderColor;
+            }
+
+            if (hasCollided && !check) // player left
+            {
+                currentRectColor = ActiveColor;
+                currentRectBorderColor = ActiveBorderColor;
+                switch (kill)
+                {
+                    case true:
+                        kill = true;
+                        break;
+                    case false:
+                        Scene.Add(new Solid(Position, Width, Height, true));
+                        break;
+                }
+                hasCollided = false;
+            }
         }
 
         public override void Added(Scene scene)
         {
             base.Added(scene);
-            if (solid != null)
-            {
-                scene.Add(solid);
-            }
+            currentRectColor = color;
+            currentRectBorderColor = BorderColor;
         }
 
         public override void Render()
         {
             Draw.HollowRect(Collider, currentRectBorderColor);
             Draw.Rect(Collider, currentRectColor);
-
-            if (solid != null)
-            {
-
-            }
-
             base.Render();
         }
 

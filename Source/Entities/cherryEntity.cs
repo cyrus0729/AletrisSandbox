@@ -3,10 +3,10 @@ using Microsoft.Xna.Framework;
 using Monocle;
 using System.Runtime.CompilerServices;
 
-namespace Celeste.Mod.CyrusSandbox.Entities
+namespace Celeste.Mod.AletrisSandbox.Entities
 {
 
-    [CustomEntity("CyrusHelper/cherryEntity")]
+    [CustomEntity("AletrisSandbox/CherryEntity")]
 
     public class cherryEntity : Entity
     {
@@ -22,9 +22,9 @@ namespace Celeste.Mod.CyrusSandbox.Entities
 
         private PlayerCollider pc;
 
-        Sprite sprite = GFX.SpriteBank.Create("cherryEntity");
+        Sprite sprite = GFX.SpriteBank.Create("CherryEntity");
 
-        Sprite bigsprite = GFX.SpriteBank.Create("cherryEntityBig");
+        Sprite bigsprite = GFX.SpriteBank.Create("CherryEntityBig");
 
         [MethodImpl(MethodImplOptions.NoInlining)]
 
@@ -41,35 +41,17 @@ namespace Celeste.Mod.CyrusSandbox.Entities
             sprite.Color = color;
             bigsprite.Color = color;
 
-            switch (BigHitbox)
+            switch (UnforgivingHitbox)
             {
                 case true:
-                    switch (UnforgivingHitbox)
-                    {
-                        case false:
-                            base.Collider = new Circle(5f);
-                            break;
-                        case true:
-                            base.Collider = new Circle(6f);
-                            break;
-                    }
-                    Add(bigsprite);
+                    base.Collider = new Circle(UnforgivingHitbox ? 6f : 5f);
                     break;
-
                 case false:
-                    switch (UnforgivingHitbox)
-                    {
-                        case false:
-                            base.Collider = new Circle(3f);
-                            break;
-                        case true:
-                            base.Collider = new Circle(4f);
-                            break;
-                    }
-                    Add(sprite);
+                    base.Collider = new Circle(UnforgivingHitbox ? 4f : 3f);
                     break;
             }
 
+            Add(BigHitbox ? bigsprite : sprite);
             Add(new LedgeBlocker());
             Add(pc = new PlayerCollider(OnCollide));
 

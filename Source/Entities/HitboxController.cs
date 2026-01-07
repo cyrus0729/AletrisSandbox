@@ -1,152 +1,105 @@
+using System;
 using Celeste.Mod.Entities;
 using Microsoft.Xna.Framework;
 using Monocle;
-using System;
+using System.Text.RegularExpressions;
 
 // to the entirety of #code_modding: thank you so much lmao i could not have done this without you guys
 // oh and to snip for dealing with all my stupid bullshit .w.
 
-namespace Celeste.Mod.CyrusSandbox.Entities
+namespace Celeste.Mod.AletrisSandbox.Entities
 {
-    internal static class EntitydataExtensions
-    {
-        internal static Vector2 Vector(this EntityData data, string name) //thanks snip!!!!@!!!!!! :333
-        {
-            var splitValue = data.Attr(name, "").Split(',');
 
-            if (splitValue.Length != 2)
-            {
-                throw new InvalidOperationException($"\"{name}\" is not a valid vector; expected 2 comma-separated values, but got {splitValue.Length}");
-            }
-
-            if (!int.TryParse(splitValue[0], out var x))
-                throw new InvalidOperationException($"\"{name}\" is not a valid vector; \"{splitValue[0]}\" (X component) is not a number");
-
-            if (!int.TryParse(splitValue[1], out var y))
-                throw new InvalidOperationException($"\"{name}\" is not a valid vector; \"{splitValue[1]}\" (Y component) is not a number");
-
-            return new Vector2(x, y);
-        }
-
-        internal static Vector2 Offset(this EntityData data, string name) //modified
-        {
-            var splitValue = data.Attr(name, "").Split(',');
-            if (splitValue.Length != 2)
-            {
-                throw new InvalidOperationException($"\"{name}\" is not a valid vector; expected 2 comma-separated values, but got {splitValue.Length}");
-            }
-
-            if (!int.TryParse(splitValue[0], out var offsetx))
-                throw new InvalidOperationException($"\"{name}\" is not a valid offset; \"{splitValue[2]}\" (X component) is not a number");
-            if (!int.TryParse(splitValue[1], out var offsety))
-                throw new InvalidOperationException($"\"{name}\" is not a valid offset; \"{splitValue[3]}\" (Y component) is not a number");
-            return new Vector2(offsetx, offsety);
-        }
-
-    }
-
-    [CustomEntity("CyrusHelper/HitboxController")]
+    [CustomEntity("AletrisSandbox/HitboxController")]
     public class HitboxController : Entity
     {
 
-        private Vector2 newHitbox;
-        private Vector2 newHurtbox;
+        Collider newHitbox;
+        Collider newHurtbox;
 
-        private Vector2 newduckHitbox;
-        private Vector2 newduckHurtbox;
+        Collider newduckHitbox;
+        Collider newduckHurtbox;
 
-        private Vector2 newfeatherHitbox;
-        private Vector2 newfeatherHurtbox;
-
-        private Vector2 newHitboxOffset;
-        private Vector2 newHurtboxOffset;
-
-        private Vector2 newduckHitboxOffset;
-        private Vector2 newduckHurtboxOffset;
-
-        private Vector2 newfeatherHitboxOffset;
-        private Vector2 newfeatherHurtboxOffset;
+        Collider newfeatherHitbox;
+        Collider newfeatherHurtbox;
 
         public Player player;
 
-        public bool IsAdvancedModeOn;
         public bool ModifyHitbox;
 
         public HitboxController(EntityData data, Vector2 offset) : base(data.Position + offset)
         {
 
-            newHitbox = data.Vector("Hitbox");
-            newHurtbox = data.Vector("Hurtbox");
+            newHitbox = ParseCollider(data.Attr("Hitbox"));
+            newHurtbox = ParseCollider(data.Attr("Hurtbox"));
 
-            newduckHitbox = data.Vector("duckHitbox");
-            newduckHurtbox = data.Vector("duckHurtbox");
+            newduckHitbox = ParseCollider(data.Attr("duckHitbox"));
+            newduckHurtbox = ParseCollider(data.Attr("duckHurtbox"));
 
-            newfeatherHitbox = data.Vector("featherHitbox");
-            newfeatherHurtbox = data.Vector("featherHurtbox");
+            newfeatherHitbox = ParseCollider(data.Attr("featherHitbox"));
+            newfeatherHurtbox = ParseCollider(data.Attr("featherHurtbox"));
 
-            IsAdvancedModeOn = data.Bool("advancedMode", false);
             ModifyHitbox = data.Bool("modifyHitbox", false);
-
-            if (IsAdvancedModeOn)
-            {
-                newHitboxOffset = data.Offset("HitboxOffset");
-                newHurtboxOffset = data.Offset("HurtboxOffset");
-
-                newduckHitboxOffset = data.Offset("duckHitboxOffset");
-                newduckHurtboxOffset = data.Offset("duckHurtboxOffset");
-
-                newfeatherHitboxOffset = data.Offset("featherHitboxOffset");
-                newfeatherHurtboxOffset = data.Offset("featherHurtboxOffset");
-            }
 
         }
 
+        public Collider ParseCollider(string str) // in format (R/C:X,Y,oX,oY)
+        {
+            Regex rgc = new Regex(@"\n\((C).*?(\d),(\d),(\d)\)");
+            Regex rgr = new Regex(@"\n\((R).*?(\d),(\d),(\d),(\d)\)");
+            Match matchr = rgr.Match(str);
+            Match matchc = rgc.Match(str);
+            if (matchr.Success)
+            {
+                return new Hitbox(float.Parse(matchr.Groups[2].Value),
+                                  float.Parse(matchr.Groups[3].Value),
+                                  float.Parse(matchr.Groups[4].Value),
+                                  float.Parse(matchr.Groups[5].Value));
+            } else if (matchc.Success) {
+                return new Circle(
+                    float.Parse(matchr.Groups[2].Value),
+                    float.Parse(matchr.Groups[3].Value),
+                    float.Parse(matchr.Groups[4].Value));
+            }
+            else
+            {
+                Logger.Log(LogLevel.Warn, "AletrisSandbox", "Wrong syntax for string" + str + "! (R:X,Y,oX,oY)/(C:R,X,Y)");
+                return new Hitbox(1f, 1f);
+            }
+        }
 
         public override void Awake(Scene scene)
         {
             base.Awake(scene);
 
-            if (!CyrusSandboxModule.Settings.HitboxOptions.PlayerHitboxEnableOverride || ModifyHitbox) { return; }
+            if (!ModifyHitbox) return;
 
             Player player = Scene.Tracker.GetEntity<Player>();
 
-            player.normalHitbox.Width = newHitbox.X;
-            player.normalHitbox.Height = newHitbox.Y;
+            player.normalHitbox.Width = newHitbox.Width;
+            player.normalHitbox.Height = newHitbox.Height;
+            player.normalHitbox.Position = newHitbox.Position;
 
-            player.duckHitbox.Width = newduckHitbox.X;
-            player.duckHitbox.Height = newduckHitbox.Y;
+            player.duckHitbox.Width = newduckHitbox.Width;
+            player.duckHitbox.Height = newduckHitbox.Height;
+            player.duckHitbox.Position = newduckHitbox.Position;
 
-            player.starFlyHitbox.Width = newfeatherHitbox.X;
-            player.starFlyHitbox.Height = newfeatherHitbox.Y;
+            player.starFlyHitbox.Width = newfeatherHitbox.Width;
+            player.starFlyHitbox.Height = newfeatherHitbox.Height;
+            player.starFlyHitbox.Position = newfeatherHitbox.Position;
 
-            player.normalHurtbox.Width = newHurtbox.X;
-            player.normalHurtbox.Height = newHurtbox.Y;
+            player.normalHurtbox.Width = newHurtbox.Width;
+            player.normalHurtbox.Height = newHurtbox.Height;
+            player.normalHurtbox.Position = newHurtbox.Position;
 
-            player.duckHurtbox.Width = newduckHurtbox.X;
-            player.duckHurtbox.Height = newduckHurtbox.Y;
+            player.duckHurtbox.Width = newduckHurtbox.Width;
+            player.duckHurtbox.Height = newduckHurtbox.Height;
+            player.duckHurtbox.Position = newduckHurtbox.Position;
 
-            player.starFlyHurtbox.Width = newfeatherHurtbox.X;
-            player.starFlyHurtbox.Height = newfeatherHurtbox.Y;
-
-            player.normalHitbox.Position.X = (IsAdvancedModeOn ? newHitboxOffset.X : -4);
-            player.normalHitbox.Position.Y = (IsAdvancedModeOn ? newHitboxOffset.Y : -11);
-
-            player.duckHitbox.Position.X = (IsAdvancedModeOn ? newduckHitboxOffset.X : -4);
-            player.duckHitbox.Position.Y = (IsAdvancedModeOn ? newduckHitboxOffset.Y : -6);
-
-            player.starFlyHitbox.Position.X = (IsAdvancedModeOn ? newfeatherHitboxOffset.X : -4);
-            player.starFlyHitbox.Position.Y = (IsAdvancedModeOn ? newfeatherHitboxOffset.Y : -10);
-
-            player.normalHurtbox.Position.X = (IsAdvancedModeOn ? newHurtboxOffset.X : -4);
-            player.normalHurtbox.Position.Y = (IsAdvancedModeOn ? newHurtboxOffset.Y : -11);
-
-            player.duckHurtbox.Position.X = (IsAdvancedModeOn ? newduckHurtboxOffset.X : -4);
-            player.duckHurtbox.Position.Y = (IsAdvancedModeOn ? newduckHurtboxOffset.Y : -6);
-
-            player.starFlyHurtbox.Position.X = (IsAdvancedModeOn ? newfeatherHurtboxOffset.X : -3);
-            player.starFlyHurtbox.Position.Y = (IsAdvancedModeOn ? newfeatherHurtboxOffset.Y : -9);
+            player.starFlyHurtbox.Width = newfeatherHurtbox.Width;
+            player.starFlyHurtbox.Height = newfeatherHurtbox.Height;
+            player.starFlyHurtbox.Position = newfeatherHurtbox.Position;
         }
-
 
     }
 }

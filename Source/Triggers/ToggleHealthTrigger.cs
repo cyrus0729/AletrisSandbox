@@ -1,9 +1,9 @@
 using Celeste.Mod.Entities;
 using Microsoft.Xna.Framework;
 
-namespace Celeste.Mod.CyrusSandbox.Triggers
+namespace Celeste.Mod.AletrisSandbox.Triggers
 {
-    [CustomEntity("CyrusSandbox/ToggleHealthTrigger")]
+    [CustomEntity("AletrisSandbox/ToggleHealthTrigger")]
     public class ToggleHealthTrigger : Trigger
     {
         public bool enableHealth;
@@ -18,10 +18,9 @@ namespace Celeste.Mod.CyrusSandbox.Triggers
         public override void OnEnter(Player player) // start
         {
             base.OnEnter(player);
-            if (CyrusSandboxModule.Session.HPSystemEnabled) CyrusSandboxModule.Session.HPSystemEnabled = false;
-            CyrusSandboxModule.Session.HPSystemEnabled = enableHealth;
-            CyrusSandboxModule.Session.HPAmount = defaultHealth;
-            CyrusSandboxModule.Session.HPMax = defaultHealth;
+            AletrisSandboxModule.Session.HPSystemEnabled = enableHealth;
+            AletrisSandboxModule.Session.HPAmount = defaultHealth;
+            AletrisSandboxModule.Session.HPMax = defaultHealth;
         }
 
     }
