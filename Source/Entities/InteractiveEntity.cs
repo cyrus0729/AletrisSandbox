@@ -5,9 +5,9 @@ using System.Collections;
 
 // Thank you: #Code_Modding, SnipUnderCover, Brokemia, Kalobi, Kuksattu, USSRNAME, and many others who helped.
 
-namespace Celeste.Mod.CyrusSandbox.Entities
+namespace Celeste.Mod.AletrisSandbox.Entities
 {
-    [CustomEntity("CyrusSandbox/InteractiveEntity")]
+    [CustomEntity("AletrisSandbox/InteractiveEntity")]
     public class InteractiveEntity : NPC
     {
 

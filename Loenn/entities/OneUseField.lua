@@ -2,7 +2,7 @@ local drawableRectangle = require('structs.drawable_rectangle')
 local utils = require("utils")
 
 local OneUseField = {
-    name = "CyrusSandbox/OneUseField",
+    name = "AletrisSandbox/OneUseField",
     depth = -8500,
     placements = {
         {
@@ -10,12 +10,12 @@ local OneUseField = {
             data = {
                 kill = false,
                 depth = -8500,
-                inactivecolor = "00ff00",
-                inactivebordercolor = "008800",
-                activatingcolor =  "ffff00",
-                activatingbordercolor = "888800",
-                activecolor = "ff0000",
-                activebordercolor = "880000",
+                InactiveColor = "00ff00",
+                InactiveBorderColor = "008800",
+                ActivatingColor =  "ffff00",
+                ActivatingBorderColor = "888800",
+                ActiveColor = "ff0000",
+                ActiveBorderColor = "880000",
                 width = 8,
                 height = 8
             },
@@ -24,21 +24,22 @@ local OneUseField = {
 }
 
 OneUseField.fieldInformation = {
-    color = {
-        fieldType = "color",
-        allowXNAColors = true
-    },
     interactType = {
         options = {"Kill, Block"},
         editable = false
-    }
+    },
+    InactiveColor = {fieldType = "color",allowXNAColors = true},
+    InactiveBorderColor = {fieldType = "color",allowXNAColors = true},
+    ActivatingColor = {fieldType = "color",allowXNAColors = true},
+    ActivatingBorderColor = {fieldType = "color",allowXNAColors = true},
+    ActiveColor = {fieldType = "color",allowXNAColors = true},
+    ActiveBorderColor = {fieldType = "color",allowXNAColors = true},
 }
 
 function OneUseField.sprite(room,entity)
-    local success,r,g,b = utils.parseHexColor(entity.color)
-    local C1 = {r - 0.2 ,g - 0.2 ,b - 0.2}
-    local C2 = {r ,g ,b}
-    return drawableRectangle.fromRectangle("bordered",entity.x,entity.y,entity.width,entity.height,C1,C2)
+    local success,r,g,b = utils.parseHexColor(entity.InactiveColor)
+    local success,r2,g2,b2 = utils.parseHexColor(entity.InactiveBorderColor)
+    return drawableRectangle.fromRectangle("bordered",entity.x,entity.y,entity.width,entity.height,{r,g,b},{r2,g2,b2})
 end
 
 return OneUseField

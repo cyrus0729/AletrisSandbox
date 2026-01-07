@@ -1,9 +1,9 @@
 using Celeste.Mod.Entities;
 using Microsoft.Xna.Framework;
 
-namespace Celeste.Mod.CyrusSandbox.Entities
+namespace Celeste.Mod.AletrisSandbox.Entities
 {
-    [CustomEntity("CyrusSandbox/SampleSolid")]
+    [CustomEntity("AletrisSandbox/SampleSolid")]
     public class SampleSolid : Solid
     {
         public SampleSolid(EntityData data, Vector2 offset)

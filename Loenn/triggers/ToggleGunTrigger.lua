@@ -1,5 +1,5 @@
 local ToggleGunTrigger = {
-    name = "CyrusSandbox/ToggleGunTrigger",
+    name = "AletrisSandbox/ToggleGunTrigger",
     placements = {
         {
             name = "Toggle Gun Trigger",

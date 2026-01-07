@@ -1,5 +1,5 @@
 local ToggleHealthTrigger = {
-    name = "CyrusSandbox/ToggleHealthTrigger",
+    name = "AletrisSandbox/ToggleHealthTrigger",
     placements = {
         {
             name = "Enable Health Trigger",

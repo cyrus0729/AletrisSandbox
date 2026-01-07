@@ -2,9 +2,9 @@ using Celeste.Mod.Entities;
 using Microsoft.Xna.Framework;
 using Monocle;
 
-namespace Celeste.Mod.CyrusSandbox.Entities
+namespace Celeste.Mod.AletrisSandbox.Entities
 {
-    [CustomEntity("CyrusSandbox/SampleEntity")]
+    [CustomEntity("AletrisSandbox/SampleEntity")]
     public class SampleEntity : Entity
     {
         public SampleEntity(EntityData data, Vector2 offset)

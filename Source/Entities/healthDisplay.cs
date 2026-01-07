@@ -4,16 +4,16 @@ using Microsoft.Xna.Framework.Graphics;
 using Monocle;
 using System;
 
-namespace Celeste.Mod.CyrusSandbox.Entities
+namespace Celeste.Mod.AletrisSandbox.Entities
 {
     [Tracked]
-    [CustomEntity("CyrusSandbox/healthDisplay")]
+    [CustomEntity("AletrisSandbox/healthDisplay")]
     public class healthDisplay : Entity
     {
 
-        public int currentHP = CyrusSandboxModule.Session.HPAmount;
+        public int currentHP = AletrisSandboxModule.Session.HPAmount;
 
-        public int maxHP = CyrusSandboxModule.Session.HPMax;
+        public int maxHP = AletrisSandboxModule.Session.HPMax;
 
         public healthDisplay()
         {
@@ -32,7 +32,7 @@ namespace Celeste.Mod.CyrusSandbox.Entities
 
         private void DrawHP()
         {
-            ActiveFont.Draw(CyrusSandboxModule.Session.HPAmount.ToString() + "/" + CyrusSandboxModule.Session.HPMax.ToString(), new Vector2(720f, 144f), Color.White);
+            ActiveFont.Draw(AletrisSandboxModule.Session.HPAmount.ToString() + "/" + AletrisSandboxModule.Session.HPMax.ToString(), new Vector2(720f, 144f), Color.White);
         }
 
     }

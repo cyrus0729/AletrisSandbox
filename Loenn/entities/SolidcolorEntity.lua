@@ -3,7 +3,7 @@ local drawable = require("structs.drawable_rectangle")
 
 local SolidcolorEntity = {}
 
-SolidcolorEntity.name = "CyrusSandbox/SolidcolorEntity"
+SolidcolorEntity.name = "AletrisSandbox/SolidcolorEntity"
 SolidcolorEntity.minimumSize = {8,8}
 SolidcolorEntity.fieldInformation = {
     Color = {

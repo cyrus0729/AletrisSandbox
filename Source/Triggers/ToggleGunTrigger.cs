@@ -1,9 +1,9 @@
 using Celeste.Mod.Entities;
 using Microsoft.Xna.Framework;
 
-namespace Celeste.Mod.CyrusSandbox.Triggers
+namespace Celeste.Mod.AletrisSandbox.Triggers
 {
-    [CustomEntity("CyrusSandbox/ToggleGunTrigger")]
+    [CustomEntity("AletrisSandbox/ToggleGunTrigger")]
     public class ToggleGunTrigger : Trigger
     {
         public bool enableGun;
@@ -27,12 +27,12 @@ namespace Celeste.Mod.CyrusSandbox.Triggers
         {
             base.OnEnter(player);
             if (player.StateMachine.state != 0) return;
-            CyrusSandboxModule.Session.IWBTGGunEnabled = enableGun;
-            CyrusSandboxModule.Session.Maxbullets = maxBullets;
-            CyrusSandboxModule.Session.IWBTGGunMouseAimEnabled = mouseControl;
-            CyrusSandboxModule.Session.IWBTGGunAutofireEnabled = Autofire;
-            CyrusSandboxModule.Session.IWBTGGunDestroysStuff = destroyStuff;
-            CyrusSandboxModule.Session.IWBTGGunHitsStuff = hitsStuff;
+            AletrisSandboxModule.Session.IWBTGGunEnabled = enableGun;
+            AletrisSandboxModule.Session.Maxbullets = maxBullets;
+            AletrisSandboxModule.Session.IWBTGGunMouseAimEnabled = mouseControl;
+            AletrisSandboxModule.Session.IWBTGGunAutofireEnabled = Autofire;
+            AletrisSandboxModule.Session.IWBTGGunDestroysStuff = destroyStuff;
+            AletrisSandboxModule.Session.IWBTGGunHitsStuff = hitsStuff;
 
         }
 

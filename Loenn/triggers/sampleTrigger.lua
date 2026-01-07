@@ -1,5 +1,5 @@
 local sampleTrigger = {
-    name = "CyrusSandbox/SampleTrigger",
+    name = "AletrisSandbox/SampleTrigger",
     placements = {
         {
             name = "normal",

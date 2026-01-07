@@ -2,9 +2,9 @@ using Celeste.Mod.Entities;
 using Microsoft.Xna.Framework;
 using Monocle;
 
-namespace Celeste.Mod.CyrusSandbox.Entities
+namespace Celeste.Mod.AletrisSandbox.Entities
 {
-    [CustomEntity("CyrusHelper/SolidcolorEntity")]
+    [CustomEntity("AletrisSandbox/SolidcolorEntity")]
     public class SolidcolorEntity : Entity
     {
         public Color color;

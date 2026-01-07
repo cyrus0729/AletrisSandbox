@@ -14,11 +14,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace CyrusHelper.Entities;
+namespace AletrisSandbox.Entities;
 
-[CustomEntity("CyrusHelper/CustomLuaBoss")]
+[CustomEntity("AletrisSandbox/CustomLuaBoss")]
 [Tracked]
-public sealed class LuaBadelineBoss : FinalBoss
+public sealed class ModifiedLuaBadelineBoss : FinalBoss
 {
     #region Hooks
     private static bool _HooksLoaded;
@@ -37,18 +37,18 @@ public sealed class LuaBadelineBoss : FinalBoss
 
     private static void FinalBoss_CreateBossSprite(On.Celeste.FinalBoss.orig_CreateBossSprite orig, FinalBoss self)
     {
-        if (self is not LuaBadelineBoss luaBoss)
+        if (self is not ModifiedLuaBadelineBoss luaBoss)
         {
             orig(self);
             return;
         }
 
-        luaBoss.CreateCustomBossSprite(luaBoss);
+        luaBoss.CreateCustomBossSprite();
     }
 
     private static void FinalBoss_OnPlayer(On.Celeste.FinalBoss.orig_OnPlayer orig, FinalBoss self, Player player)
     {
-        if (self is not LuaBadelineBoss luaBoss)
+        if (self is not ModifiedLuaBadelineBoss luaBoss)
         {
             orig(self, player);
             return;
@@ -61,7 +61,7 @@ public sealed class LuaBadelineBoss : FinalBoss
 
     private static void FinalBoss_StartAttacking(On.Celeste.FinalBoss.orig_StartAttacking orig, FinalBoss self)
     {
-        if (self is not LuaBadelineBoss luaBoss)
+        if (self is not ModifiedLuaBadelineBoss luaBoss)
         {
             orig(self);
             return;
@@ -84,11 +84,10 @@ public sealed class LuaBadelineBoss : FinalBoss
     }
     #endregion
 
-
     public string Filename;
-    private LuaFunction Func;
-    private LuaFunction OnEndFunc;
-    private LuaFunction OnHitFunc;
+    private LuaFunction? Func;
+    private LuaFunction? OnEndFunc;
+    private LuaFunction? OnHitFunc;
     private EntityData EntityData;
     private LuaTable LuaCtx;
 
@@ -103,20 +102,19 @@ public sealed class LuaBadelineBoss : FinalBoss
     private float BeamShootVol;
     private float ShatterVol;
     private bool FacePlayer;
-    private FacingDirections faceDirection; // -1 = right
+    private int faceDirection; // -1 = right
+
 
     public Guid Id { get; private set; }
-
-    private enum FacingDirections { Left, Right }
 
     private List<Entity> CreatedShots { get; set; } = new();
 
     private List<Coroutine> CreatedCoroutines { get; set; } = new();
 
     // internal lua api
-    public static LuaBadelineBoss GetById(Guid id)
+    public static ModifiedLuaBadelineBoss? GetById(Guid id)
     {
-        foreach (LuaBadelineBoss boss in Engine.Scene.Tracker.SafeGetEntities<LuaBadelineBoss>())
+        foreach (ModifiedLuaBadelineBoss boss in Engine.Scene.Tracker.SafeGetEntities<ModifiedLuaBadelineBoss>())
         {
             if (boss.Id == id)
                 return boss;
@@ -125,30 +123,31 @@ public sealed class LuaBadelineBoss : FinalBoss
         return null;
     }
 
-    public LuaBadelineBoss(EntityData e, Vector2 offset) : base(e, offset)
+    public ModifiedLuaBadelineBoss(EntityData e, Vector2 offset) : base(e, offset)
     {
         LoadHooksIfNeeded();
 
         EntityData = e;
         patternIndex = -1;
+        //canChangeMusic = false;
         dialog = false;
+
+        texture = e.Attr("bulletTexture", "");
+        defaultWaveStrength = e.Float("defaultWaveStrength", 0f);
+        IdleAudioVol = e.Float("IdleAudioVolume", 0f);
+        BosswaveFrequency = e.Float("BossWaveFrequency", 0f);
+        ChangedMusicVol = e.Float("ChangedMusicVolume", 0f);
+        ShotChargeVol = e.Float("ShotChargeVolume", 0f);
+        BeamChargeVol = e.Float("BeamChargeVolume", 0f);
+        ShotShootVol = e.Float("ShotShootVolume", 0f);
+        BeamShootVol = e.Float("BeamShootVolume", 0f);
+        ShatterVol = e.Float("ShatterVolume", 0f);
+        FacePlayer = e.Bool("FacePlayer", true);
+        faceDirection = e.Int("FaceDirection", -1); // -1 = right
+
         Id = Guid.NewGuid();
 
         Filename = e.Attr("filename");
-        texture = e.Attr("texture");
-
-        defaultWaveStrength = e.Float("defualtWaveStrength", 0);
-        BosswaveFrequency = e.Float("bosswaveFrequency", 0);
-        IdleAudioVol = e.Float("IdleAudioVol", 0);
-        ShotChargeVol = e.Float("ShotChargeVol", 0);
-        BeamChargeVol = e.Float("BeamChargeVol", 0);
-        ChangedMusicVol = e.Float("ChangedMusicVol", 0);
-        ShotShootVol = e.Float("ShotShootVol", 0);
-        BeamShootVol = e.Float("BeamShootVol", 0);
-        ShatterVol = e.Float("ShatterVol", 0);
-        FacePlayer = e.Bool("FacePlayer", 0);
-        faceDirection = e.Enum("FaceDirection", FacingDirections.Right);
-
 
         LuaCtx = LuaHelper.DictionaryToLuaTable(new()
         {
@@ -158,7 +157,7 @@ public sealed class LuaBadelineBoss : FinalBoss
 
         UpdateLuaCtx();
 
-        var env = LuaHelper.RunLua(@"Assets/CyrusSandbox/CustomFrostLuaBoss/env", env: null, LuaCtx)[0] as LuaTable;//Env.Value;
+        var env = LuaHelper.RunLua(@"Assets/FrostHelper/LuaBoss/env", env: null, LuaCtx)[0] as LuaTable;//Env.Value;
         var returned = LuaHelper.RunLua(Filename, env, LuaCtx, "getBossData");
 
         if (returned is [LuaFunction luaFunc, ..])
@@ -168,7 +167,7 @@ public sealed class LuaBadelineBoss : FinalBoss
         else
         {
             NotificationHelper.Notify("Failed to load lua boss! Check log.txt.");
-            Logger.Log(LogLevel.Error, "CyrusSandbox.CustomFrostLuaBoss", $"Failed to load lua boss from {Filename}");
+            Logger.Log(LogLevel.Error, "AletrisSandbox.ModifiedLuaBadelineBoss", $"Failed to load lua boss from {Filename}");
         }
 
         if (returned is [_, LuaFunction onEndFunc, ..])
@@ -186,7 +185,7 @@ public sealed class LuaBadelineBoss : FinalBoss
         }
     }
 
-    internal void CreateCustomBossSprite(LuaBadelineBoss self)
+    internal void CreateCustomBossSprite()
     {
         Add(Sprite = GFX.SpriteBank.Create(EntityData.Attr("sprite", "badeline_boss")));
         Sprite.Color = EntityData.GetColor("color", "ffffff");
@@ -195,7 +194,7 @@ public sealed class LuaBadelineBoss : FinalBoss
         {
             if (anim == "idle" && Sprite.CurrentAnimationFrame == 18)
             {
-                Audio.Play("event:/char/badeline/boss_idle_air", Position);
+                Audio.Play("event:/char/badeline/boss_idle_air", Position, "volume", IdleAudioVol);
             }
         };
         facing = -1;
@@ -219,12 +218,6 @@ public sealed class LuaBadelineBoss : FinalBoss
         foreach (var cor in CreatedCoroutines)
         {
             cor.Update();
-        }
-        facing = -1;
-        if ()
-        {
-            facing = -1;
-
         }
 
         if (OnEndFunc is { } onEndFunc && !level.IsInBounds(Position, 24f))
@@ -250,7 +243,7 @@ public sealed class LuaBadelineBoss : FinalBoss
         LuaCtx["player"] = level?.Tracker.GetEntity<Player>();
     }
 
-    private IEnumerator LuaFuncToIEnumerator(LuaFunction func)
+    private IEnumerator LuaFuncToIEnumerator(LuaFunction? func)
     {
         if (func is { })
         {
@@ -287,18 +280,15 @@ public sealed class LuaBadelineBoss : FinalBoss
         CreatedCoroutines.Clear();
     }
 
-    private void ShootImpl(Vector2? location, LuaTable args, LuaBadelineBoss self)
+    private void ShootImpl(Vector2? location, LuaTable? args)
     {
-        if (!(bool)f_LuaBoss_noShotShootSound.GetValue(self))
+        if (!chargeSfx.Playing)
         {
-            if (!chargeSfx.Playing)
-            {
-                chargeSfx.Play("event:/char/badeline/boss_bullet", "end", 1f);
-            }
-            else
-            {
-                chargeSfx.Param("end", 1f);
-            }
+            chargeSfx.Play("event:/char/badeline/boss_bullet", "end", 1f);
+        }
+        else
+        {
+            chargeSfx.Param("end", 1f);
         }
         Sprite.Play("attack1Recoil", true, false);
 
@@ -311,35 +301,26 @@ public sealed class LuaBadelineBoss : FinalBoss
     }
 
     #region Lua API
-    public void StartShootCharge(LuaBadelineBoss self)
+    public new void StartShootCharge()
     {
         Sprite.Play("attack1Begin", false, false);
-        if (!(bool)f_LuaBoss_noShotChargeSound.GetValue(self))
-        {
-            chargeSfx.Play("event:/char/badeline/boss_bullet", null, 0f);
-        }
+        chargeSfx.Play("event:/char/badeline/boss_bullet", null, 0f);
     }
 
-    public void SpawnBullet(Vector2 location, LuaTable args = null)
+    public void Shoot(LuaTable? args = null)
     {
-        ShootImpl(location, args, this);
+        ShootImpl(null, args);
     }
 
-    public void Shoot(LuaTable args = null)
+    public void ShootAt(Vector2 location, LuaTable? args = null)
     {
-        ShootImpl(null, args, this);
-    }
-
-    public void ShootAt(Vector2 location, LuaTable args = null)
-    {
-        ShootImpl(location, args, this);
+        ShootImpl(location, args);
     }
 
     private bool _beamFireSoundPlayedThisFrame;
 
-    public IEnumerator Beam(LuaBadelineBoss self, LuaTable args = null)
+    public IEnumerator Beam(LuaTable? args = null)
     {
-
         laserSfx.Play("event:/char/badeline/boss_laser_charge", null, 0f);
         Sprite.Play("attack2Begin", true, false);
         yield return 0.1f;
@@ -363,13 +344,10 @@ public sealed class LuaBadelineBoss : FinalBoss
         yield return lockTime;
 
         laserSfx.Stop(true);
-        if (!(bool)f_LuaBoss_noBeamShootSound.GetValue(self))
+        if (!_beamFireSoundPlayedThisFrame)
         {
-            if (!_beamFireSoundPlayedThisFrame)
-            {
-                Audio.Play("event:/char/badeline/boss_laser_fire", Position);
-                _beamFireSoundPlayedThisFrame = true;
-            }
+            Audio.Play("event:/char/badeline/boss_laser_fire", Position);
+            _beamFireSoundPlayedThisFrame = true;
         }
 
         Sprite.Play("attack2Recoil", false, false);
@@ -381,14 +359,14 @@ public sealed class LuaBadelineBoss : FinalBoss
         CreatedCoroutines.Add(c);
     }
 
-    public void ShatterSpinners(LuaTable args = null)
+    public void ShatterSpinners(LuaTable? args = null)
     {
         bool anySpinnersBroken = false;
 
-        Type[] types;
-        if (args.GetOrDefault<object>("types", null) is LuaTable typesStringList)
+        Type?[] types;
+        if (args.GetOrDefault<object?>("types", null) is LuaTable typesStringList)
         {
-            types = new Type[typesStringList.Values.Count];
+            types = new Type?[typesStringList.Values.Count];
             var i = 0;
             foreach (var typeName in typesStringList.Values.OfType<string>())
             {
@@ -409,7 +387,7 @@ public sealed class LuaBadelineBoss : FinalBoss
             types = Type.EmptyTypes;
         }
 
-        LuaFunction filterFunc = args.GetOrDefault<LuaFunction>("filter", null);
+        LuaFunction? filterFunc = args.GetOrDefault<LuaFunction?>("filter", null);
 
         foreach (var t in types)
         {
@@ -445,7 +423,7 @@ public sealed class LuaBadelineBoss : FinalBoss
             #endregion
 
             var allEntities = Scene.Tracker.GetEntitiesOrNull(t) ?? Scene.Entities.Where(e => e.GetType() == t);
-            MethodInfo destroyMethod = null;
+            MethodInfo? destroyMethod = null;
 
             foreach (var entity in allEntities)
             {
@@ -599,20 +577,18 @@ public sealed class CustomBossShot : Entity
 
     private const float AppearTime = 0.1f;
 
-    public float WaveStrength;
-
-    public string texture;
+    public float WaveStrength = 3f;
 
     public CustomBossShot() : base(Vector2.Zero)
     {
-        Add(sprite = GFX.SpriteBank.Create(texture));
+        Add(sprite = GFX.SpriteBank.Create("badeline_projectile"));
         Collider = new Hitbox(4f, 4f, -2f, -2f);
         Add(new PlayerCollider(OnPlayer, null, null));
         Depth = -1000000;
         Add(sine = new SineWave(1.4f, 0f));
     }
 
-    internal CustomBossShot Init(LuaBadelineBoss boss, Player target, LuaTable args, Vector2? targetLoc)
+    internal CustomBossShot Init(ModifiedLuaBadelineBoss boss, Player target, LuaTable? args, Vector2? targetLoc)
     {
         if (targetLoc is { })
         {
@@ -634,7 +610,7 @@ public sealed class CustomBossShot : Entity
         return this;
     }
 
-    internal CustomBossShot Init(LuaBadelineBoss boss, Vector2 target, LuaTable args)
+    internal CustomBossShot Init(ModifiedLuaBadelineBoss boss, Vector2 target, LuaTable? args)
     {
         this.target = null;
         targetPt = target;
@@ -642,7 +618,7 @@ public sealed class CustomBossShot : Entity
         return this;
     }
 
-    private void SharedInit(LuaBadelineBoss boss, LuaTable args)
+    private void SharedInit(ModifiedLuaBadelineBoss boss, LuaTable? args)
     {
         this.boss = boss;
         anchor = Position = boss.Center;
@@ -656,7 +632,8 @@ public sealed class CustomBossShot : Entity
 
         angleOffset = args.GetOrDefault("angleOffset", 0f).ToRad();
         MoveSpeed = args.GetOrDefault("speed", 100f);
-        WaveStrength = args.GetOrDefault("waveStrength", 0f);
+        WaveStrength = args.GetOrDefault("waveStrength", 3f);
+
 
         InitSpeed();
     }
@@ -771,7 +748,7 @@ public sealed class CustomBossShot : Entity
 
     private Vector2 perp;
 
-    private Player target;
+    private Player? target;
 
     private Vector2 targetPt;
 
@@ -819,7 +796,7 @@ public class CustomBossBeam : Entity
         Depth = -1000000;
     }
 
-    internal CustomBossBeam Init(LuaBadelineBoss boss, Player target, LuaTable args)
+    internal CustomBossBeam Init(ModifiedLuaBadelineBoss boss, Player target, LuaTable? args)
     {
         this.boss = boss;
 

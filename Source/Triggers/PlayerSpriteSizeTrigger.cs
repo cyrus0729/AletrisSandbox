@@ -1,10 +1,9 @@
-using Celeste.Mod.CyrusSandbox;
 using Celeste.Mod.Entities;
 using Microsoft.Xna.Framework;
 using Monocle;
 using System;
 
-namespace Celeste.Mod.CyrusSandbox.Triggers
+namespace Celeste.Mod.AletrisSandbox.Triggers
 {
     internal static class EntitydataExtensions
     {
@@ -28,7 +27,7 @@ namespace Celeste.Mod.CyrusSandbox.Triggers
 
     }
 
-    [CustomEntity("CyrusHelper/PlayerSpriteSizeTrigger")]
+    [CustomEntity("AletrisSandbox/PlayerSpriteSizeTrigger")]
     public class PlayerSpriteSizeTrigger : Trigger
     {
 
@@ -63,8 +62,6 @@ namespace Celeste.Mod.CyrusSandbox.Triggers
 
             originalsize = new Vector2(player.Sprite.Scale.X, player.Sprite.Scale.Y);
             player.Sprite.Scale = new Vector2(size.X, size.Y);
-            CyrusSandboxModule.Session.SizeChangeSize = new Vector2(size.X, size.Y);
-            CyrusSandboxModule.Session.SizeChangePersistent = Persistent;
         }
 
         public override void OnStay(Player player) // repeat
@@ -84,9 +81,6 @@ namespace Celeste.Mod.CyrusSandbox.Triggers
         public static void hookPlayerRender(On.Celeste.Player.orig_Render orig, Player self, Scene scene)
         {
             orig.Invoke(self);
-            if (!CyrusSandboxModule.Session.SizeChangePersistent) { return; }
-            Logger.Log(LogLevel.Info, "ch", CyrusSandboxModule.Session.SizeChangeSize.ToString());
-            self.Sprite.Scale = new Vector2(CyrusSandboxModule.Session.SizeChangeSize.X, CyrusSandboxModule.Session.SizeChangeSize.Y);
         }
     }
 }

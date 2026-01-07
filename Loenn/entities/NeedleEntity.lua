@@ -15,10 +15,10 @@ local sideIndexLookup = {
     Left = 4
 }
 
-local function createNeedle(name,displayname,rotation,mini)
+local function createNeedle(truename,displayname,rotation,mini)
     local NeedleEntity = {}
     
-    NeedleEntity.name = name
+    NeedleEntity.name = truename
     NeedleEntity.fieldInformation = {
         hitbox = {
         options = {"NeedleHelper", "Forgiving", "Unforgiving"},
@@ -30,17 +30,16 @@ local function createNeedle(name,displayname,rotation,mini)
         }
     }
 
-    function NeedleEntity.justification(room, entity)
-        return not entity.isMini and {0,0} or {0.5,0.5}
-    end
+    NeedleEntity.offset = function(room, entity) return entity.isMini and {0.5, 0.5} or {0, 0} end
 
     NeedleEntity.placements = {
         {
             name = displayname,
             data = {
-                Sprite = (not mini and "needleEntity" or "miniNeedleEntity"),
+                Sprite = (mini and "MiniNeedleEntity" or "NeedleEntity"),
                 hitbox = "NeedleHelper",
-                isMini = mini
+                isMini = mini,
+                kill = true
             }
         }
     }
@@ -48,14 +47,14 @@ local function createNeedle(name,displayname,rotation,mini)
     NeedleEntity.sprite = function(room,entity)
         local sprite 
         local spritepath = (entity.isMini and "/mini00" or "/needle00")
-        sprite = drawableSprite.fromTexture("objects/CyrusSandbox/".."NeedleEntity"..spritepath, entity)
+        sprite = drawableSprite.fromTexture("danger/AletrisSandbox/".."NeedleEntity"..spritepath, entity)
         sprite.rotation = math.rad(90*(rotation-1))
         return sprite
     end
 
     function NeedleEntity.rotate(room, entity, direction)
         local newFacing = utils.mod1(rotation + direction,4)
-        entity._name = "CyrusSandbox/"..(entity.isMini and "miniNeedle" or "Needle")..sideIndexLookup[newFacing]
+        entity._name = "AletrisSandbox/"..(entity.isMini and "MiniNeedle" or "Needle")..sideIndexLookup[newFacing]
         return true
     end
 
@@ -63,15 +62,15 @@ local function createNeedle(name,displayname,rotation,mini)
     return NeedleEntity
 end
 
-local NeedleEntityUp = createNeedle("CyrusSandbox/NeedleUp","Needle (Up)",1,false)
-local NeedleEntityDown = createNeedle("CyrusSandbox/NeedleDown","Needle (Down)",3,false)
-local NeedleEntityRight = createNeedle("CyrusSandbox/NeedleLeft","Needle (Left)",4,false)
-local NeedleEntityLeft =  createNeedle("CyrusSandbox/NeedleRight","Needle (Right)",2,false)
+local NeedleEntityUp = createNeedle("AletrisSandbox/NeedleUp","Needle (Up)",1,false)
+local NeedleEntityDown = createNeedle("AletrisSandbox/NeedleDown","Needle (Down)",3,false)
+local NeedleEntityRight = createNeedle("AletrisSandbox/NeedleLeft","Needle (Left)",4,false)
+local NeedleEntityLeft =  createNeedle("AletrisSandbox/NeedleRight","Needle (Right)",2,false)
 
-local miniNeedleEntityUp = createNeedle("CyrusSandbox/miniNeedleUp","Mini Needle (Up)",1,true)
-local miniNeedleEntityDown = createNeedle("CyrusSandbox/miniNeedleDown","Mini Needle (Down)",3,true)
-local miniNeedleEntityRight = createNeedle("CyrusSandbox/miniNeedleLeft","Mini Needle (Left)",4,true)
-local miniNeedleEntityLeft =  createNeedle("CyrusSandbox/miniNeedleRight","Mini Needle (Right)",2,true)
+local miniNeedleEntityUp = createNeedle("AletrisSandbox/MiniNeedleUp","Mini Needle (Up)",1,true)
+local miniNeedleEntityDown = createNeedle("AletrisSandbox/MiniNeedleDown","Mini Needle (Down)",3,true)
+local miniNeedleEntityRight = createNeedle("AletrisSandbox/MiniNeedleLeft","Mini Needle (Left)",4,true)
+local miniNeedleEntityLeft =  createNeedle("AletrisSandbox/MiniNeedleRight","Mini Needle (Right)",2,true)
 
 
 return {
