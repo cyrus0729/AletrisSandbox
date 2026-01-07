@@ -8,22 +8,15 @@ HitboxTrigger.placements = {
         data = {
             width = 8,
             height = 8,
-            advancedMode = false,
-            persistent = false,
-            Hitbox = "8,11",
-            duckHitbox = "8,6",
-            featherHitbox = "8,8",
-            Hurtbox = "8,9",
-            duckHurtbox = "8,4",
-            featherHurtbox = "6,6",
-
-            HitboxOffset = "-4,-11",
-            duckHitboxOffset = "-4,-6",
-            featherHitboxOffset = "-4,-10",
-            HurtboxOffset = "-4,-11",
-            duckHurtboxOffset = "-4,-6",
-            featherHurtboxOffset = "-3,-9",
-        }
+            modifyHitbox = true,
+            Hitbox = "R:8,11,-4,-11",
+            duckHitbox = "R:8,6,-4,-6",
+            featherHitbox = "R:8,8,-4,-10",
+            Hurtbox = "R:8,9,-4,-11",
+            duckHurtbox = "R:8,4,-4,-6",
+            featherHurtbox = "R:6,6,-3,-9",
+        },
+        fieldOrder = {"x","y","width","height","Hitbox","duckHitbox","featherHitbox","Hurtbox","duckHurtbox","featherHurtbox"}
     }
 }
 

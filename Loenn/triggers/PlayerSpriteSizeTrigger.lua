@@ -10,6 +10,7 @@ local PlayerSpriteSizeTrigger = {
                 Flag = "",
                 Persistent = false
             },
+            fieldOrder = {"x","y","width","height","Scale","Flag","Persistent"}
         },
     },
 }

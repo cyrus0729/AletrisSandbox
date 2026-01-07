@@ -25,7 +25,8 @@ local function createDeathCube(truename,displayname,rotation,mini)
             data = {
                 Sprite = "DeathCubeEntity",
                 UnforgivingHitbox = false,
-            }
+            },
+            fieldOrder = {"x","y","Sprite","UnforgivingHitbox"}
         }
     }
 

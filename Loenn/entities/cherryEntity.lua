@@ -34,7 +34,8 @@ CherryEntity.placements = {
             bigHitbox = false,
             color = "ff0000",
             animationRate = 30
-        }
+        },
+        fieldOrder = {"x","y","animatedHitbox","unforgivingHitbox","bigHitbox","color","animationRate"}
     }
 }
 

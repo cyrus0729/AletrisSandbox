@@ -30,42 +30,17 @@ namespace Celeste.Mod.AletrisSandbox.Entities
         public HitboxController(EntityData data, Vector2 offset) : base(data.Position + offset)
         {
 
-            newHitbox = ParseCollider(data.Attr("Hitbox"));
-            newHurtbox = ParseCollider(data.Attr("Hurtbox"));
+            newHitbox = hawa.ParseCollider(data.Attr("Hitbox"));
+            newHurtbox = hawa.ParseCollider(data.Attr("Hurtbox"));
 
-            newduckHitbox = ParseCollider(data.Attr("duckHitbox"));
-            newduckHurtbox = ParseCollider(data.Attr("duckHurtbox"));
+            newduckHitbox = hawa.ParseCollider(data.Attr("duckHitbox"));
+            newduckHurtbox = hawa.ParseCollider(data.Attr("duckHurtbox"));
 
-            newfeatherHitbox = ParseCollider(data.Attr("featherHitbox"));
-            newfeatherHurtbox = ParseCollider(data.Attr("featherHurtbox"));
+            newfeatherHitbox = hawa.ParseCollider(data.Attr("featherHitbox"));
+            newfeatherHurtbox = hawa.ParseCollider(data.Attr("featherHurtbox"));
 
             ModifyHitbox = data.Bool("modifyHitbox", false);
 
-        }
-
-        public Collider ParseCollider(string str) // in format (R/C:X,Y,oX,oY)
-        {
-            Regex rgc = new Regex(@"\n\((C).*?(\d),(\d),(\d)\)");
-            Regex rgr = new Regex(@"\n\((R).*?(\d),(\d),(\d),(\d)\)");
-            Match matchr = rgr.Match(str);
-            Match matchc = rgc.Match(str);
-            if (matchr.Success)
-            {
-                return new Hitbox(float.Parse(matchr.Groups[2].Value),
-                                  float.Parse(matchr.Groups[3].Value),
-                                  float.Parse(matchr.Groups[4].Value),
-                                  float.Parse(matchr.Groups[5].Value));
-            } else if (matchc.Success) {
-                return new Circle(
-                    float.Parse(matchr.Groups[2].Value),
-                    float.Parse(matchr.Groups[3].Value),
-                    float.Parse(matchr.Groups[4].Value));
-            }
-            else
-            {
-                Logger.Log(LogLevel.Warn, "AletrisSandbox", "Wrong syntax for string" + str + "! (R:X,Y,oX,oY)/(C:R,X,Y)");
-                return new Hitbox(1f, 1f);
-            }
         }
 
         public override void Awake(Scene scene)
@@ -74,31 +49,31 @@ namespace Celeste.Mod.AletrisSandbox.Entities
 
             if (!ModifyHitbox) return;
 
-            Player player = Scene.Tracker.GetEntity<Player>();
+            Player playr = Scene.Tracker.GetEntity<Player>();
 
-            player.normalHitbox.Width = newHitbox.Width;
-            player.normalHitbox.Height = newHitbox.Height;
-            player.normalHitbox.Position = newHitbox.Position;
+            playr.normalHitbox.Width = newHitbox.Width;
+            playr.normalHitbox.Height = newHitbox.Height;
+            playr.normalHitbox.Position = newHitbox.Position;
 
-            player.duckHitbox.Width = newduckHitbox.Width;
-            player.duckHitbox.Height = newduckHitbox.Height;
-            player.duckHitbox.Position = newduckHitbox.Position;
+            playr.duckHitbox.Width = newduckHitbox.Width;
+            playr.duckHitbox.Height = newduckHitbox.Height;
+            playr.duckHitbox.Position = newduckHitbox.Position;
 
-            player.starFlyHitbox.Width = newfeatherHitbox.Width;
-            player.starFlyHitbox.Height = newfeatherHitbox.Height;
-            player.starFlyHitbox.Position = newfeatherHitbox.Position;
+            playr.starFlyHitbox.Width = newfeatherHitbox.Width;
+            playr.starFlyHitbox.Height = newfeatherHitbox.Height;
+            playr.starFlyHitbox.Position = newfeatherHitbox.Position;
 
-            player.normalHurtbox.Width = newHurtbox.Width;
-            player.normalHurtbox.Height = newHurtbox.Height;
-            player.normalHurtbox.Position = newHurtbox.Position;
+            playr.normalHurtbox.Width = newHurtbox.Width;
+            playr.normalHurtbox.Height = newHurtbox.Height;
+            playr.normalHurtbox.Position = newHurtbox.Position;
 
-            player.duckHurtbox.Width = newduckHurtbox.Width;
-            player.duckHurtbox.Height = newduckHurtbox.Height;
-            player.duckHurtbox.Position = newduckHurtbox.Position;
+            playr.duckHurtbox.Width = newduckHurtbox.Width;
+            playr.duckHurtbox.Height = newduckHurtbox.Height;
+            playr.duckHurtbox.Position = newduckHurtbox.Position;
 
-            player.starFlyHurtbox.Width = newfeatherHurtbox.Width;
-            player.starFlyHurtbox.Height = newfeatherHurtbox.Height;
-            player.starFlyHurtbox.Position = newfeatherHurtbox.Position;
+            playr.starFlyHurtbox.Width = newfeatherHurtbox.Width;
+            playr.starFlyHurtbox.Height = newfeatherHurtbox.Height;
+            playr.starFlyHurtbox.Position = newfeatherHurtbox.Position;
         }
 
     }

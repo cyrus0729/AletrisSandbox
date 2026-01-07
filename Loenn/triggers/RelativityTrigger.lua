@@ -9,6 +9,7 @@ local RelativityTrigger = {
                 Enable = true,
                 DisableOnLeave = false,
             },
+            fieldOrder = {"x","y","width","height","Enable","DisableOnLeave"}
         },
     },
 }

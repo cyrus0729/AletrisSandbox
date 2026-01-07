@@ -17,7 +17,8 @@ InteractiveEntity.placements = {
             talkAnimation = "sunnyPetting",
             idleAnimation = "sunnyIdle",
             flag = ""
-        }
+        },
+        fieldOrder = {"x","y","TalkSound","TalkEndSound","TalkDuration","MakeHairInvisible","Spacing","playerAnimation","talkAnimation","idleAnimation","flag","ShowIndicator"}
     }
 }
 

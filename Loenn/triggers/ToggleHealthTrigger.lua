@@ -9,6 +9,7 @@ local ToggleHealthTrigger = {
                 Enable = true,
                 DefaultHealth = 1000,
             },
+            fieldOrder = {"x","y","width","height","enable","DefaultHealth"}
         },
     },
 }

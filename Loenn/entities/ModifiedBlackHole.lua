@@ -11,7 +11,8 @@ blackhole.placements = {
         ForceModifier = 0.8,
         auraRadius = 48,
         holeRadius = 8,
-    }
+    },
+    fieldOrder = {"x","y","SpeedModifier","ForceModifier","auraRadius","holeRadius"}
 }
 
 blackhole.texture = "AletrisSandbox/ModifiedBlackHole/LoennPreview"

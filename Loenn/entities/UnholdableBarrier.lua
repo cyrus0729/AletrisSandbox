@@ -12,6 +12,7 @@ local UnholdableBarrier = {
                 width = 8,
                 height = 8
             },
+            fieldOrder = {"x","y","width","height","color"}
         },
     },
 }

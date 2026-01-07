@@ -30,42 +30,17 @@ namespace Celeste.Mod.AletrisSandbox.Entities
         public HitboxTrigger(EntityData data, Vector2 offset) : base(data, offset)
         {
 
-            newHitbox = ParseCollider(data.Attr("Hitbox"));
-            newHurtbox = ParseCollider(data.Attr("Hurtbox"));
+            newHitbox = hawa.ParseCollider(data.Attr("Hitbox"));
+            newHurtbox = hawa.ParseCollider(data.Attr("Hurtbox"));
 
-            newduckHitbox = ParseCollider(data.Attr("duckHitbox"));
-            newduckHurtbox = ParseCollider(data.Attr("duckHurtbox"));
+            newduckHitbox = hawa.ParseCollider(data.Attr("duckHitbox"));
+            newduckHurtbox = hawa.ParseCollider(data.Attr("duckHurtbox"));
 
-            newfeatherHitbox = ParseCollider(data.Attr("featherHitbox"));
-            newfeatherHurtbox = ParseCollider(data.Attr("featherHurtbox"));
+            newfeatherHitbox = hawa.ParseCollider(data.Attr("featherHitbox"));
+            newfeatherHurtbox = hawa.ParseCollider(data.Attr("featherHurtbox"));
 
             ModifyHitbox = data.Bool("modifyHitbox", false);
 
-        }
-
-        public Collider ParseCollider(string str) // in format (R/C:X,Y,oX,oY)
-        {
-            Regex rgc = new Regex(@"\n\((C).*?(\d),(\d),(\d)\)");
-            Regex rgr = new Regex(@"\n\((R).*?(\d),(\d),(\d),(\d)\)");
-            Match matchr = rgr.Match(str);
-            Match matchc = rgc.Match(str);
-            if (matchr.Success)
-            {
-                return new Hitbox(float.Parse(matchr.Groups[2].Value),
-                                  float.Parse(matchr.Groups[3].Value),
-                                  float.Parse(matchr.Groups[4].Value),
-                                  float.Parse(matchr.Groups[5].Value));
-            } else if (matchc.Success) {
-                return new Circle(
-                    float.Parse(matchr.Groups[2].Value),
-                    float.Parse(matchr.Groups[3].Value),
-                    float.Parse(matchr.Groups[4].Value));
-            }
-            else
-            {
-                Logger.Log(LogLevel.Warn, "AletrisSandbox", "Wrong syntax for string" + str + "! (R:X,Y,oX,oY)/(C:R,X,Y)");
-                return new Hitbox(1f, 1f);
-            }
         }
 
         public override void OnEnter(Player player)

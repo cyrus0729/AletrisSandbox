@@ -19,6 +19,7 @@ local OneUseField = {
                 width = 8,
                 height = 8
             },
+            fieldOrder = {"x","y","kill","depth","InactiveColor","InactiveBorderColor","ActivatingColor","ActivatingBorderColor","ActiveColor","ActiveBorderColor","width","height"}
         },
     },
 }

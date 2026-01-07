@@ -40,7 +40,8 @@ local function createNeedle(truename,displayname,rotation,mini)
                 hitbox = "NeedleHelper",
                 isMini = mini,
                 kill = true
-            }
+            },
+            fieldOrder = {"x","y","Sprite","hitbox","isMini","kill"}
         }
     }
 

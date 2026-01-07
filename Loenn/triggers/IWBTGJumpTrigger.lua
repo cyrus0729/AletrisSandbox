@@ -8,6 +8,7 @@ local IWBTGJumpTrigger = {
                 height = 8,
                 Enable = true
             },
+            fieldOrder = {"x","y","width","height","Enable"}
         },
     },
 }

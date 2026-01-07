@@ -36,7 +36,8 @@ SolidcolorEntity.placements = {
             Interaction = "None",
             Depth = 8500,
             --color = "eebbdb" hehe eeby deeby
-        }
+        },
+        fieldOrder = {"x","y","width","height","Color","LineColor","DrawType","Interaction","Depth"}
     }
 }
 

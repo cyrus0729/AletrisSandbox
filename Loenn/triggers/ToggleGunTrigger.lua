@@ -13,6 +13,7 @@ local ToggleGunTrigger = {
                 InteractsWithStuff = false,
                 BulletsAllowed = 4,
             },
+            fieldOrder = {"x","y","width","height","Enable","Autofire","MouseControl","DestroyStuff","InteractsWithStuff","BulletsAllowed"}
         },
     },
 }

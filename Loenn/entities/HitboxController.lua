@@ -15,7 +15,8 @@ HitboxController.placements = {
             Hurtbox = "R:8,9,-4,-11",
             duckHurtbox = "R:8,4,-4,-6",
             featherHurtbox = "R:6,6,-3,-9",
-        }
+        },
+        fieldOrder = {"x","y","width","height","Hitbox","duckHitbox","featherHitbox","Hurtbox","duckHurtbox","featherHurtbox"}
     }
 }
 
