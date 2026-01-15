@@ -1,15 +1,11 @@
-﻿using AsmResolver.IO;
-using Celeste.Mod.AletrisSandbox.Entities;
+﻿using Celeste.Mod.AletrisSandbox.Entities;
 using Celeste.Mod.AletrisSandbox.GunSupport;
-using Microsoft.VisualBasic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Monocle;
-using MonoMod.ModInterop;
-using On.Celeste;
 using System;
-using System.Reflection;
+using NLua;
 
 namespace Celeste.Mod.AletrisSandbox
 {
@@ -35,14 +31,11 @@ namespace Celeste.Mod.AletrisSandbox
 #endif
         }
 
-        public MTexture gunTexture;
-        private Texture2D crossTexture;
+        public static MTexture gunTexture;
+        private static Texture2D crossTexture;
 
-        private VirtualJoystick joystickAim;
-        private Vector2 oldJoystickAim;
-        private Vector2 oldMouseCursorPos = Vector2.Zero;
-        private Vector2 CursorPos = Vector2.Zero;
-        private bool usingJoystickAim = false;
+        private static Vector2 oldMouseCursorPos = Vector2.Zero;
+        private static Vector2 CursorPos = Vector2.Zero;
 
         private static MouseState State => Mouse.GetState();
         private static Vector2 MouseCursorPos => Vector2.Transform(new Vector2(State.X, State.Y), Matrix.Invert(Engine.ScreenMatrix));
@@ -63,32 +56,28 @@ namespace Celeste.Mod.AletrisSandbox
         }
 
         private static Vector2 PlayerPosScreenSpace(Actor self)
-        {
-            return self.Center - (self.Scene as Level).Camera.Position;
-        }
+            => self.Center - ((Level)self.Scene).Camera.Position;
 
         private static Vector2 ToCursor(Actor player, Vector2 cursorPos)
-        {
-            return Vector2.Normalize(cursorPos / 6f - PlayerPosScreenSpace(player));
-        }
+            => Vector2.Normalize(cursorPos / 6f - PlayerPosScreenSpace(player));
 
         private static float ToRotation(Vector2 vector)
-        {
-            return (float)Math.Atan2(vector.Y, vector.X);
-        }
+            => (float)Math.Atan2(vector.Y, vector.X);
 
-        private void GunPlayerRender(On.Celeste.Player.orig_Render orig, Player self)
+        private static void GunPlayerRender(On.Celeste.Player.orig_Render orig, Player self)
         {
             orig(self);
 
-            if (!(Settings.IWBTOptions.IWBTGGunEnableOverride || Session.IWBTGGunEnabled)) return;
+            if (!(Settings.IWBTOptions.IWBTGGunEnableOverride || Session.IWBTGGunEnabled) ||
+                !(Settings.IWBTOptions.IWBTGGunVisibleOverride || Session.IWBTGGunVisible))
+                return;
 
             SpriteEffects flip = SpriteEffects.None;
             Vector2 offset;
 
             Vector2 gunVector = ToCursor(self, CursorPos);
 
-            float gunRotation = Math.Min(Math.Max(ToRotation(gunVector), -1.2f), 1.2f);
+            float gunRotation;
 
             if (Settings.IWBTOptions.IWBTGGunAimOverride || Session.IWBTGGunMouseAimEnabled)
             {
@@ -137,7 +126,7 @@ namespace Celeste.Mod.AletrisSandbox
 
         }
 
-        private void GunLevelRender(On.Celeste.Level.orig_Render orig, Level self)
+        private static void GunLevelRender(On.Celeste.Level.orig_Render orig, Level self)
         {
             orig(self);
             if (!(Settings.IWBTOptions.IWBTGGunEnableOverride || Session.IWBTGGunEnabled)) return;
@@ -145,101 +134,71 @@ namespace Celeste.Mod.AletrisSandbox
 
             Draw.SpriteBatch.Begin(0, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone, null, Engine.ScreenMatrix);
 
-            Color aimColor = Color.White;
-
-            if (self.Tracker.CountEntities<IWBTGBullet>() >= Session.Maxbullets)
-            {
-                aimColor = Color.Red;
-            }
-            else
-            {
-                aimColor = Color.White;
-            }
-
-            Draw.SpriteBatch.Draw(crossTexture, CursorPos, null, aimColor, 0f, new Vector2(crossTexture.Width / 2f, crossTexture.Height / 2f), 4f, 0, 0f);
+            Color aimColor = self.Tracker.CountEntities<IWBTGBullet>() >= Session.Maxbullets ? Color.Red : Color.White;
+            Draw.SpriteBatch.Draw(crossTexture, CursorPos, null, aimColor, 0f, new(crossTexture.Width / 2f, crossTexture.Height / 2f), 4f, 0, 0f);
             Draw.SpriteBatch.End();
         }
 
-        private void GunPlayerUpdate(On.Celeste.Player.orig_Update orig, Player self)
+        private static void GunPlayerUpdate(On.Celeste.Player.orig_Update orig, Player self)
         {
-
             orig(self);
-
-            bool boolToCheck;
 
             if (!(Settings.IWBTOptions.IWBTGGunEnableOverride || Session.IWBTGGunEnabled)) return;
 
             var components = self.SceneAs<Level>().Tracker.GetComponents<OnlyBlocksPlayer>();
-            foreach (OnlyBlocksPlayer component in components)
+            foreach (var component in components)
             {
                 component.Entity.Collidable = true;
             }
-            foreach (OnlyBlocksPlayer component in components)
+            foreach (var component in components)
             {
                 component.Entity.Collidable = false;
             }
+            oldMouseCursorPos = CursorPos;
+            CursorPos = MouseCursorPos;
 
-            // cursor pos update
-            if (joystickAim.Value.LengthSquared() > 0.04f)
+            /*if (self.Scene != null || self.Scene.TimeActive <= 0f || (TalkComponent.PlayerOver != null && Input.Talk.Pressed))
             {
-                usingJoystickAim = true;
-            }
-            else if (MouseCursorPos != oldMouseCursorPos)
-            {
-                usingJoystickAim = false;
-            }
-
-            if (usingJoystickAim && self.Scene != null)
-            {
-                CursorPos = (PlayerPosScreenSpace(self) + oldJoystickAim * 70f) * 6f;
-                if (joystickAim.Value.LengthSquared() > 0.04f)
-                {
-                    oldJoystickAim = joystickAim.Value;
-                }
-            }
-            else
-            {
-                CursorPos = MouseCursorPos;
-            }
-            oldMouseCursorPos = MouseCursorPos;
-
-
-            if (self.Scene == null || self.Scene.TimeActive <= 0f || (TalkComponent.PlayerOver != null && Input.Talk.Pressed)) return;
+                Logger.Log(LogLevel.Info,"alsandbox","houijgwsrdf");
+                orig(self);
+                return;
+            }*/
 
             float turnOffset = (self.Facing == Facings.Left) ? -20f : 0f;
             Vector2 mouseposition = new Vector2(self.Center.X, self.Center.Y - 4.5f);
             Vector2 position = new Vector2(self.Center.X + 7f + turnOffset, self.Center.Y - 4.5f);
 
+            bool boolToCheck;
             bool isAimOverride = Settings.IWBTOptions.IWBTGGunAimOverride || Session.IWBTGGunMouseAimEnabled;
-            bool isAutoFireOverride = Settings.IWBTOptions.IWBTGGunAutoFireOverride || Session.IWBTGGunAutofireEnabled;
 
-            boolToCheck = isAimOverride
-                ? (Settings.IWBTOptions.ShootBullet.Pressed || MInput.Mouse.PressedLeftButton)
-                : Settings.IWBTOptions.ShootBullet.Pressed;
-
-            if (isAutoFireOverride)
+            if (Settings.IWBTOptions.IWBTGGunAutoFireOverride || Session.IWBTGGunAutofireEnabled)
             {
-                boolToCheck = isAimOverride
-                    ? Settings.IWBTOptions.ShootBullet.Check || MInput.Mouse.CheckLeftButton
-                    : Settings.IWBTOptions.ShootBullet.Check;
-            }
-
-            if (!boolToCheck) return;
-            if (self.Scene.Tracker.CountEntities<IWBTGBullet>() >= Session.Maxbullets) return;
-
-            if (Settings.IWBTOptions.IWBTGGunAimOverride || Session.IWBTGGunMouseAimEnabled)
-            {
-                new IWBTGBullet(mouseposition, ToCursor(self, CursorPos) * 5f, self);
+                boolToCheck = Settings.BulletFirekey.Check || (isAimOverride ? MInput.Mouse.CheckLeftButton : false);
             }
             else
             {
-                new IWBTGBullet(position, (self.Facing == Facings.Left ? new Vector2(-1, 0) : new Vector2(1, 0)) * 5f, self);
+                boolToCheck = Settings.BulletFirekey.Pressed || (isAimOverride ? MInput.Mouse.PressedLeftButton : false);
             }
-            Audio.Play("event:/AletrisSandbox_stuff/fire" + Settings.IWBTOptions.GunSound.ToString(), "fade", 0.5f);
 
+            if (boolToCheck && self.Scene.Tracker.CountEntities<IWBTGBullet>() < Session.Maxbullets)
+            {
+                if (Settings.IWBTOptions.IWBTGGunAimOverride || Session.IWBTGGunMouseAimEnabled)
+                {
+                    IWBTGBullet _ = new IWBTGBullet(mouseposition, ToCursor(self, CursorPos) * 5f, self);
+                }
+                else
+                {
+                    IWBTGBullet _ = new IWBTGBullet(position, (self.Facing == Facings.Left ? new Vector2(-1, 0) : new Vector2(1, 0)) * 5f, self);
+                }
+
+                if (Settings.IWBTOptions.GunSound > 0)
+                {
+                    Audio.Play("event:/aletris_sandbox/fire" + Settings.IWBTOptions.GunSound, "fade", 0f);
+                }
+            }
         }
 
-        private void HitboxPlayerUpdate(On.Celeste.Player.orig_Update orig, Player self)
+        private static void HitboxPlayerUpdate(On.Celeste.Player.orig_Update orig, Player self)
         {
 
             orig(self);
@@ -249,31 +208,31 @@ namespace Celeste.Mod.AletrisSandbox
 
             try
             {
-                self.normalHitbox.Width = (float)Settings.HitboxSizeMenu.NormalHitboxSizeX;
-                self.normalHitbox.Height = (float)Settings.HitboxSizeMenu.NormalHitboxSizeY;
-                self.duckHitbox.Width = (float)Settings.HitboxSizeMenu.DuckHitboxSizeX;
-                self.duckHitbox.Height = (float)Settings.HitboxSizeMenu.DuckHitboxSizeY;
-                self.starFlyHitbox.Width = (float)Settings.HitboxSizeMenu.FeatherHitboxSizeX;
-                self.starFlyHitbox.Height = (float)Settings.HitboxSizeMenu.FeatherHitboxSizeY;
-                self.normalHurtbox.Width = (float)Settings.HitboxSizeMenu.NormalHurtboxSizeX;
-                self.normalHurtbox.Height = (float)Settings.HitboxSizeMenu.NormalHurtboxSizeY;
-                self.duckHurtbox.Width = (float)Settings.HitboxSizeMenu.DuckHurtboxSizeX;
-                self.duckHurtbox.Height = (float)Settings.HitboxSizeMenu.DuckHurtboxSizeY;
-                self.starFlyHurtbox.Width = (float)Settings.HitboxSizeMenu.FeatherHurtboxSizeX;
-                self.starFlyHurtbox.Height = (float)Settings.HitboxSizeMenu.FeatherHurtboxSizeY;
+                self.normalHitbox.Width = (float)Settings.HitboxSizeOptions.NormalHitboxSizeX;
+                self.normalHitbox.Height = (float)Settings.HitboxSizeOptions.NormalHitboxSizeY;
+                self.duckHitbox.Width = (float)Settings.HitboxSizeOptions.DuckHitboxSizeX;
+                self.duckHitbox.Height = (float)Settings.HitboxSizeOptions.DuckHitboxSizeY;
+                self.starFlyHitbox.Width = (float)Settings.HitboxSizeOptions.FeatherHitboxSizeX;
+                self.starFlyHitbox.Height = (float)Settings.HitboxSizeOptions.FeatherHitboxSizeY;
+                self.normalHurtbox.Width = (float)Settings.HitboxSizeOptions.NormalHurtboxSizeX;
+                self.normalHurtbox.Height = (float)Settings.HitboxSizeOptions.NormalHurtboxSizeY;
+                self.duckHurtbox.Width = (float)Settings.HitboxSizeOptions.DuckHurtboxSizeX;
+                self.duckHurtbox.Height = (float)Settings.HitboxSizeOptions.DuckHurtboxSizeY;
+                self.starFlyHurtbox.Width = (float)Settings.HitboxSizeOptions.FeatherHurtboxSizeX;
+                self.starFlyHurtbox.Height = (float)Settings.HitboxSizeOptions.FeatherHurtboxSizeY;
 
-                self.normalHitbox.Position.X = (float)Settings.HitboxOffsetMenu.NormalHitboxOffsetX;
-                self.normalHitbox.Position.Y = (float)Settings.HitboxOffsetMenu.NormalHitboxOffsetY;
-                self.duckHitbox.Position.X = (float)Settings.HitboxOffsetMenu.DuckHitboxOffsetX;
-                self.duckHitbox.Position.Y = (float)Settings.HitboxOffsetMenu.DuckHitboxOffsetY;
-                self.starFlyHitbox.Position.X = (float)Settings.HitboxOffsetMenu.FeatherHitboxOffsetX;
-                self.starFlyHitbox.Position.Y = (float)Settings.HitboxOffsetMenu.FeatherHitboxOffsetY;
-                self.normalHurtbox.Position.X = (float)Settings.HitboxOffsetMenu.NormalHurtboxOffsetX;
-                self.normalHurtbox.Position.Y = (float)Settings.HitboxOffsetMenu.NormalHurtboxOffsetY;
-                self.duckHurtbox.Position.X = (float)Settings.HitboxOffsetMenu.DuckHurtboxOffsetX;
-                self.duckHurtbox.Position.Y = (float)Settings.HitboxOffsetMenu.DuckHurtboxOffsetY;
-                self.starFlyHurtbox.Position.X = (float)Settings.HitboxOffsetMenu.FeatherHurtboxOffsetX;
-                self.starFlyHurtbox.Position.Y = (float)Settings.HitboxOffsetMenu.FeatherHurtboxOffsetY;
+                self.normalHitbox.Position.X = (float)Settings.HitboxOffsetOptions.NormalHitboxOffsetX;
+                self.normalHitbox.Position.Y = (float)Settings.HitboxOffsetOptions.NormalHitboxOffsetY;
+                self.duckHitbox.Position.X = (float)Settings.HitboxOffsetOptions.DuckHitboxOffsetX;
+                self.duckHitbox.Position.Y = (float)Settings.HitboxOffsetOptions.DuckHitboxOffsetY;
+                self.starFlyHitbox.Position.X = (float)Settings.HitboxOffsetOptions.FeatherHitboxOffsetX;
+                self.starFlyHitbox.Position.Y = (float)Settings.HitboxOffsetOptions.FeatherHitboxOffsetY;
+                self.normalHurtbox.Position.X = (float)Settings.HitboxOffsetOptions.NormalHurtboxOffsetX;
+                self.normalHurtbox.Position.Y = (float)Settings.HitboxOffsetOptions.NormalHurtboxOffsetY;
+                self.duckHurtbox.Position.X = (float)Settings.HitboxOffsetOptions.DuckHurtboxOffsetX;
+                self.duckHurtbox.Position.Y = (float)Settings.HitboxOffsetOptions.DuckHurtboxOffsetY;
+                self.starFlyHurtbox.Position.X = (float)Settings.HitboxOffsetOptions.FeatherHurtboxOffsetX;
+                self.starFlyHurtbox.Position.Y = (float)Settings.HitboxOffsetOptions.FeatherHurtboxOffsetY;
             }
             catch (Exception e)
             {
@@ -308,14 +267,15 @@ namespace Celeste.Mod.AletrisSandbox
 
         }
 
-        private void HitboxPlayerRender(On.Celeste.Player.orig_Render orig, Player self)
+        private static void HitboxPlayerRender(On.Celeste.Player.orig_Render orig, Player self)
         {
             orig(self);
-            if (!Settings.CircleMadelineOverride) { return; }
-            Draw.Circle(self.Position, 5, Color.Red, 50);
+            if (!(Settings.MiscelleaneousMenu.CircleMadelineOverride || Session.CircleMadelineEnabled)) { return; }
+            Draw.Circle(self.Center, Session.CircleMadelineEnabled ? Session.CircleMadelineRadius : Settings.MiscelleaneousMenu.CircleMadelineRadius, Color.Red, 25);
+            Draw.Rect(self.Collider,Color.Red);
         }
 
-        private void HPLevelUpdate(On.Celeste.Level.orig_Update orig, Level self)
+        private static void HPLevelUpdate(On.Celeste.Level.orig_Update orig, Level self)
         {
             orig(self);
             if (!(Settings.HealthOptions.HPSystemEnableOverride || Session.HPSystemEnabled)) { return; }
@@ -336,35 +296,6 @@ namespace Celeste.Mod.AletrisSandbox
             }
             return orig(self);
         }
-
-
-        [Tracked]
-        public class BulletCollider : Component
-        {
-
-            private Collider collider;
-            public Action<IWBTGBullet> OnCollide;
-
-            public BulletCollider(Action<IWBTGBullet> onCollide, Collider collider = null)
-            : base(active: false, visible: false)
-            {
-                this.collider = collider;
-                OnCollide = onCollide;
-            }
-
-            public bool Check(IWBTGBullet bullet)
-            {
-                Collider collider = Entity.Collider;
-                if (this.collider != null)
-                {
-                    Entity.Collider = this.collider;
-                }
-                bool result = bullet.CollideCheck(Entity);
-                Entity.Collider = collider;
-                return result;
-            }
-        }
-
         [Tracked]
         public class OnlyBlocksPlayer : Component
         {
@@ -377,46 +308,32 @@ namespace Celeste.Mod.AletrisSandbox
             }
         }
 
-        public static void  UnholdableBarrier_Player_Update(On.Celeste.Player.orig_Update orig, Player self)
+        public static void UnholdableBarrier_Player_Update(On.Celeste.Player.orig_Update orig, Player self)
         {
             var components = self.SceneAs<Level>().Tracker.GetComponents<OnlyBlocksPlayer>();
-            foreach (OnlyBlocksPlayer component in components)
+            foreach (var component in components)
             {
-                component.Entity.Collidable = true;
+                if (component.Entity != null)
+                {
+                    component.Entity.Collidable = true;
+                }
+                else {
+                    Logger.Log(LogLevel.Info, "AletrisSandbox", "{component.Entity} is null");
+                }
             }
             orig(self);
-            foreach (OnlyBlocksPlayer component in components)
+            foreach (var component in components)
             {
-                component.Entity.Collidable = false;
-            }
-        }
-
-        public static void RelativisticVelocity_PlayerUpdate(On.Celeste.Player.orig_Update orig, Player self)
-        {
-            bool enableRelativisticVel = AletrisSandboxModule.Session.RelativisticVelocityEnabled || AletrisSandboxModule.Settings.MiscelleaneousMenu.RelativisticVelocityOverride;
-            //float dt = Engine.DeltaTime;
-            //PropertyInfo engineDeltaTimeProp = typeof(Engine).GetProperty("DeltaTime");
-            if (enableRelativisticVel)
-            {
-                Logger.Log("aletrissandboxmodule", "relativistic velocity: " + enableRelativisticVel.ToString());
-                float speedcap = 1000f;
-                if (Math.Abs(self.Speed.X) > 0)
+                if (component.Entity != null)
                 {
-                    Logger.Log("aletrissandboxmodule", "Clamped Speed:" + (speedcap / Math.Abs(self.Speed.X)).ToString());
-                    Logger.Log("aletrissandboxmodule","Relativistic TimeRate:" + Math.Clamp(speedcap / Math.Abs(self.Speed.X), 0f, 1.0f).ToString());
-                    Engine.TimeRate = Math.Clamp(speedcap / Math.Abs(self.Speed.X), 0f, 1.0f);
-                    //(n)x of default speed
+                    component.Entity.Collidable = false;
                 }
                 else
                 {
-                    Engine.TimeRate = 1.0f;
+                    Logger.Log(LogLevel.Info, "AletrisSandbox", "{component.Entity} is null");
                 }
             }
-            orig(self);
-            //engineDeltaTimeProp.SetValue(null, dt, null);
         }
-
-
 
         //public override void OnInputInitialize()
         //{
@@ -441,7 +358,6 @@ namespace Celeste.Mod.AletrisSandbox
             On.Celeste.Level.Update += HPLevelUpdate;
             On.Celeste.Player.NormalUpdate += Player_IWBTJumpUpdate;
             On.Celeste.Player.Update += UnholdableBarrier_Player_Update;
-            On.Celeste.Player.Update += RelativisticVelocity_PlayerUpdate;
             // TODO: apply any hooks that should always be active
         }
 
@@ -456,7 +372,6 @@ namespace Celeste.Mod.AletrisSandbox
             On.Celeste.Level.Update -= HPLevelUpdate;
             On.Celeste.Player.NormalUpdate -= Player_IWBTJumpUpdate;
             On.Celeste.Player.Update -= UnholdableBarrier_Player_Update;
-            On.Celeste.Player.Update -= RelativisticVelocity_PlayerUpdate;
             // TODO: unapply any hooks applied in Load()
         }
     }

@@ -19,14 +19,19 @@ local function createDeathCube(truename,displayname,rotation,mini)
     
     DeathCube.name = truename
 
+    DeathCube.fieldInformation = {
+        Sprite = { fieldType = "string", default = "DeathCubeEntity"},
+        UnforgivingHitbox = { fieldType = "boolean", default = "false" },
+    }
+
+    DeathCube.fieldOrder = {"x","y","Sprite","UnforgivingHitbox"}
+
     DeathCube.placements = {
-        {
-            name = displayname,
-            data = {
-                Sprite = "DeathCubeEntity",
-                UnforgivingHitbox = false,
-            },
-            fieldOrder = {"x","y","Sprite","UnforgivingHitbox"}
+        name = displayname,
+        placementType = "point",
+        data = {
+            Sprite = "DeathCubeEntity",
+            UnforgivingHitbox = "false"
         }
     }
 

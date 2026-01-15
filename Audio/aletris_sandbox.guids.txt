@@ -171,9 +171,6 @@
 {99e37b23-955b-4b57-8297-e5c24a7618ee} event:/classic/sfx7
 {a0206dfc-61d3-447f-ac45-dbcaeeb2babf} event:/classic/sfx8
 {94844611-3d78-4843-bef4-5a7fb9cd3930} event:/classic/sfx9
-{077135ca-953b-4cdb-ab61-4a4dfa08d136} event:/CyrusSandbox_stuff/fire1
-{967572d8-aa3d-4a37-88e2-2555b00d4ee4} event:/CyrusSandbox_stuff/fire2
-{9669e9c7-5a74-45d6-a462-b3f247fcee8c} event:/CyrusSandbox_stuff/fire3
 {0fa79a65-c103-4f72-84d6-7a22c9b2f43c} event:/env/amb/00_prologue
 {04cc4be2-4acf-474a-a897-8709563af4c3} event:/env/amb/01_main
 {f34c1fdf-5470-453f-afc5-c3ef0f0f65cb} event:/env/amb/02_awake
@@ -815,6 +812,12 @@
 {ca8ffe65-72eb-4fb3-9c3d-27fef47bc3d1} event:/ui/world_map/whoosh/700ms_forward
 {2dca99b6-dcf5-40e6-8cd1-c72f97d364cd} event:/ui/world_map/whoosh/900ms_back
 {21a98c43-8e79-4b8a-8963-a269735f3989} event:/ui/world_map/whoosh/900ms_forward
+{f4a785db-a32a-407b-9f09-c4eb0f3c75be} event:/aletris_sandbox/fire1
+{fa27da15-7e88-430d-a673-ada9ddc44d2c} event:/aletris_sandbox/fire2
+{6616e9f6-77a3-4dce-858f-a57a0cb90a0f} event:/aletris_sandbox/fire3
+{0de86bd8-96bd-41e6-bb78-f45e223cbf20} event:/aletris_sandbox/fire4
+{041c08b3-5a7a-4f20-a5dc-c02b624abaf3} event:/aletris_sandbox/die
+{53e19c74-d2b5-4886-a8ed-9e18fe7c2032} event:/aletris_sandbox/hit
 {ea595d6d-cb07-4897-81cb-4830bf5823cb} event:/!!!_README_FIRST
 {c7aad72f-9796-42d3-980b-d093fd765716} bus:/
 {aac396d1-a63f-418a-810a-5d5a59fb2c43} bus:/gameplay_sfx
@@ -995,10 +998,10 @@
 {641d4a72-8e6e-41a8-8f3d-b28219bd4cd7} snapshot:/berry_cooperation/3000s_down
 {365efe2d-29e7-4d45-988e-451406863f9a} snapshot:/berry_cooperation/4000s_down
 {1aa61ee8-68fc-4c62-9a54-35743044bafe} snapshot:/berry_cooperation/5000s_down
-{829a2579-034b-4d2e-82e2-59d821b62387} bank:/CyrusSandbox_sfx
 {a327f717-e8b5-4fb0-b4dd-84bd8a585fe0} bank:/dlc_music
 {e85b3c9e-428d-41b7-82c0-37814f3cbf15} bank:/dlc_sfx
 {7916fdbf-1253-451d-a369-6dfd34341e4e} bank:/music
 {98263171-3ea2-482b-abb7-9af01e4c002a} bank:/sfx
 {f0efde81-92ec-4f1a-8b48-815f4d8a3255} bank:/ui
 {f42d1384-f9ea-4ba4-9e08-a4d067c55b3b} bank:/Master Bank
+{295440e0-c968-4fc5-85f7-eb2752fdea90} bank:/aletris_sandbox

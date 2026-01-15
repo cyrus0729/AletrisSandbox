@@ -1,4 +1,0 @@
-add a badeline chaser that doesn't follow all ur movements where you stop
-
-hook jump function so it gives massive vertical height
-hook jump release to reduce that vertical height

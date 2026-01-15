@@ -1,3 +1,4 @@
+using System;
 using Celeste.Mod.Entities;
 using Microsoft.Xna.Framework;
 using Monocle;
@@ -37,7 +38,10 @@ namespace Celeste.Mod.AletrisSandbox.Entities
 
             lifetime = 6000;
 
+
+        #pragma warning disable CL013
             (owner.Scene as Level).Add(this);
+        #pragma warning restore CL013
             Add(new Image(GFX.Game["AletrisSandbox/gun/bullet"]));
         }
 
@@ -88,12 +92,14 @@ namespace Celeste.Mod.AletrisSandbox.Entities
 
 
 
-            foreach (AletrisSandboxModule.BulletCollider collider in Scene.Tracker.GetComponents<AletrisSandboxModule.BulletCollider>())
+            foreach (BulletCollider co in Scene.Tracker.GetComponents<BulletCollider>())
             {
-                if (collider.Check(this))
+                if (co != null && co.Check(this))
                 {
-                    collider.OnCollide(this);
-                    if (dead) return;
+                    if (dead)
+                        return;
+
+                    co.OnCollide(this);
                 }
             }
         }
@@ -115,7 +121,33 @@ namespace Celeste.Mod.AletrisSandbox.Entities
 
     }
 
+    [Tracked]
+    public class BulletCollider : Component
+    {
+
+        private Collider collider;
+        public Action<IWBTGBullet> OnCollide;
+
+        public BulletCollider(Action<IWBTGBullet> onCollide, Collider collider = null)
+            : base(active: false, visible: false)
+        {
+            this.collider = collider;
+            OnCollide = onCollide;
+        }
+
+        public bool Check(IWBTGBullet bullet)
+        {
+            Collider collider = Entity.Collider;
+
+            if (this.collider != null)
+            {
+                Entity.Collider = this.collider;
+            }
+            bool result = bullet.CollideCheck(Entity);
+            Entity.Collider = collider;
+
+            return result;
+        }
+    }
+
 }
-
-
-

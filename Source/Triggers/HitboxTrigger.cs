@@ -30,19 +30,18 @@ namespace Celeste.Mod.AletrisSandbox.Entities
         public HitboxTrigger(EntityData data, Vector2 offset) : base(data, offset)
         {
 
-            newHitbox = hawa.ParseCollider(data.Attr("Hitbox"));
-            newHurtbox = hawa.ParseCollider(data.Attr("Hurtbox"));
+            newHitbox = Hawa.ParseCollider(data.Attr("Hitbox"));
+            newHurtbox = Hawa.ParseCollider(data.Attr("Hurtbox"));
 
-            newduckHitbox = hawa.ParseCollider(data.Attr("duckHitbox"));
-            newduckHurtbox = hawa.ParseCollider(data.Attr("duckHurtbox"));
+            newduckHitbox = Hawa.ParseCollider(data.Attr("duckHitbox"));
+            newduckHurtbox = Hawa.ParseCollider(data.Attr("duckHurtbox"));
 
-            newfeatherHitbox = hawa.ParseCollider(data.Attr("featherHitbox"));
-            newfeatherHurtbox = hawa.ParseCollider(data.Attr("featherHurtbox"));
+            newfeatherHitbox = Hawa.ParseCollider(data.Attr("featherHitbox"));
+            newfeatherHurtbox = Hawa.ParseCollider(data.Attr("featherHurtbox"));
 
-            ModifyHitbox = data.Bool("modifyHitbox", false);
+            ModifyHitbox = data.Bool("modifyHitbox", true);
 
         }
-
         public override void OnEnter(Player player)
         {
             base.OnEnter(player);

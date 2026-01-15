@@ -1,8 +1,11 @@
 using System;
+using System.Collections.Generic;
 using Celeste.Mod.Entities;
 using Microsoft.Xna.Framework;
 using Monocle;
 using System.Text.RegularExpressions;
+using Mono.Cecil.Cil;
+using MonoMod.Cil;
 
 // to the entirety of #code_modding: thank you so much lmao i could not have done this without you guys
 // oh and to snip for dealing with all my stupid bullshit .w.
@@ -30,20 +33,85 @@ namespace Celeste.Mod.AletrisSandbox.Entities
         public HitboxController(EntityData data, Vector2 offset) : base(data.Position + offset)
         {
 
-            newHitbox = hawa.ParseCollider(data.Attr("Hitbox"));
-            newHurtbox = hawa.ParseCollider(data.Attr("Hurtbox"));
+            newHitbox = Hawa.ParseCollider(data.Attr("Hitbox"));
+            newHurtbox = Hawa.ParseCollider(data.Attr("Hurtbox"));
 
-            newduckHitbox = hawa.ParseCollider(data.Attr("duckHitbox"));
-            newduckHurtbox = hawa.ParseCollider(data.Attr("duckHurtbox"));
+            newduckHitbox = Hawa.ParseCollider(data.Attr("duckHitbox"));
+            newduckHurtbox = Hawa.ParseCollider(data.Attr("duckHurtbox"));
 
-            newfeatherHitbox = hawa.ParseCollider(data.Attr("featherHitbox"));
-            newfeatherHurtbox = hawa.ParseCollider(data.Attr("featherHurtbox"));
+            newfeatherHitbox = Hawa.ParseCollider(data.Attr("featherHitbox"));
+            newfeatherHurtbox = Hawa.ParseCollider(data.Attr("featherHurtbox"));
 
             ModifyHitbox = data.Bool("modifyHitbox", false);
 
         }
 
-        public override void Awake(Scene scene)
+        public class HitboxHurtboxData
+        {
+            public Collider NormalHitbox { get; set; }
+            public Collider DuckHitbox { get; set; }
+            public Collider StarFlyHitbox { get; set; }
+            public Collider NormalHurtbox { get; set; }
+            public Collider DuckHurtbox { get; set; }
+            public Collider StarFlyHurtbox { get; set; }
+
+            public HitboxHurtboxData()
+            {
+                NormalHitbox = new Hitbox(8f, 11f, -4f, -11f);
+                DuckHitbox = new Hitbox(8f, 6f, -4f, -6f);
+                NormalHurtbox = new Hitbox(8f, 9f, -4f, -11f);
+                DuckHurtbox = new Hitbox(8f, 4f, -4f, -6f);
+                StarFlyHitbox = new Hitbox(8f, 8f, -4f, -10f);
+                StarFlyHurtbox = new Hitbox(6f, 6f, -3f, -9f);
+            }
+
+        }
+
+        void UpdatePlayerHitboxes(Player playr, HitboxHurtboxData data)
+        {
+            playr.normalHitbox.Width = data.NormalHitbox.Width;
+            playr.normalHitbox.Height = data.NormalHitbox.Height;
+            playr.normalHitbox.Position = data.NormalHitbox.Position;
+
+            playr.duckHitbox.Width = data.DuckHitbox.Width;
+            playr.duckHitbox.Height = data.DuckHitbox.Height;
+            playr.duckHitbox.Position = data.DuckHitbox.Position;
+
+            playr.starFlyHitbox.Width = data.StarFlyHitbox.Width;
+            playr.starFlyHitbox.Height = data.StarFlyHitbox.Height;
+            playr.starFlyHitbox.Position = data.StarFlyHitbox.Position;
+
+            playr.normalHurtbox.Width = data.NormalHurtbox.Width;
+            playr.normalHurtbox.Height = data.NormalHurtbox.Height;
+            playr.normalHurtbox.Position = data.NormalHurtbox.Position;
+
+            playr.duckHurtbox.Width = data.DuckHurtbox.Width;
+            playr.duckHurtbox.Height = data.DuckHurtbox.Height;
+            playr.duckHurtbox.Position = data.DuckHurtbox.Position;
+
+            playr.starFlyHurtbox.Width = data.StarFlyHurtbox.Width;
+            playr.starFlyHurtbox.Height = data.StarFlyHurtbox.Height;
+            playr.starFlyHurtbox.Position = data.StarFlyHurtbox.Position;
+        }
+
+        public void Load(Scene scene)
+        {
+            if (!ModifyHitbox) return;
+
+            Player playr = Scene.Tracker.GetEntity<Player>();
+
+            HitboxHurtboxData h = new();
+            h.NormalHitbox = newHitbox;
+            h.DuckHitbox = newduckHitbox;
+            h.StarFlyHitbox = newfeatherHitbox;
+            h.NormalHurtbox = newHurtbox;
+            h.DuckHurtbox = newduckHurtbox;
+            h.StarFlyHurtbox = newfeatherHurtbox;
+
+            UpdatePlayerHitboxes(playr, h);
+        }
+
+        public void Unload(Scene scene)
         {
             base.Awake(scene);
 
@@ -51,29 +119,7 @@ namespace Celeste.Mod.AletrisSandbox.Entities
 
             Player playr = Scene.Tracker.GetEntity<Player>();
 
-            playr.normalHitbox.Width = newHitbox.Width;
-            playr.normalHitbox.Height = newHitbox.Height;
-            playr.normalHitbox.Position = newHitbox.Position;
-
-            playr.duckHitbox.Width = newduckHitbox.Width;
-            playr.duckHitbox.Height = newduckHitbox.Height;
-            playr.duckHitbox.Position = newduckHitbox.Position;
-
-            playr.starFlyHitbox.Width = newfeatherHitbox.Width;
-            playr.starFlyHitbox.Height = newfeatherHitbox.Height;
-            playr.starFlyHitbox.Position = newfeatherHitbox.Position;
-
-            playr.normalHurtbox.Width = newHurtbox.Width;
-            playr.normalHurtbox.Height = newHurtbox.Height;
-            playr.normalHurtbox.Position = newHurtbox.Position;
-
-            playr.duckHurtbox.Width = newduckHurtbox.Width;
-            playr.duckHurtbox.Height = newduckHurtbox.Height;
-            playr.duckHurtbox.Position = newduckHurtbox.Position;
-
-            playr.starFlyHurtbox.Width = newfeatherHurtbox.Width;
-            playr.starFlyHurtbox.Height = newfeatherHurtbox.Height;
-            playr.starFlyHurtbox.Position = newfeatherHurtbox.Position;
+            UpdatePlayerHitboxes(playr, new());
         }
 
     }

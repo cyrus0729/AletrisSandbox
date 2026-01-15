@@ -5,41 +5,30 @@ local SolidcolorEntity = {}
 
 SolidcolorEntity.name = "AletrisSandbox/SolidcolorEntity"
 SolidcolorEntity.minimumSize = {8,8}
+SolidcolorEntity.Depth = -8500
 SolidcolorEntity.fieldInformation = {
-    Color = {
-        fieldType = "color",
-        allowXNAColors = true
-    },
-    LineColor = {
-        fieldType = "color",
-        allowXNAColors = true
-    },
-    Interaction = {
-        options = {"None", "Deadly", "Solid"},
-        editable = false
-    },
-    DrawType = {
-        options = {"Line","Fill","Bordered"},
-        editable = false
-    }
+    width = { fieldType = "integer", default = 16 },
+    height = { fieldType = "integer", default = 16 },
+    Color = { fieldType = "color",allowXNAColors = true, default = "#FFFFFF" },
+    LineColor = { fieldType = "color",allowXNAColors = true, default = "#000000" },
+    Interaction = { options = {"None", "Deadly", "Solid"} , editable = false, default = "Solid" },
+    DrawType = { options = {"Line","Fill","Bordered"} , editable = false, default = "Bordered" }
 }
 
+SolidcolorEntity.fieldOrder = {"x","y","width","height","Color","LineColor","DrawType","Interaction","Depth"}
+
 SolidcolorEntity.placements = {
-    {
-        name = "Solid Color Entity",
-        data = {
-            width = 16,
-            height = 16,
-            Color = "ffffff",
-            LineColor = "000000",
-            DrawType = "Line",
-            Interaction = "None",
-            Depth = 8500,
-            --color = "eebbdb" hehe eeby deeby
-        },
-        fieldOrder = {"x","y","width","height","Color","LineColor","DrawType","Interaction","Depth"}
+    name = "Solid Color Entity",
+    placementType = "rectangle",
+    data = {
+        width = 16,
+        height = 16,
+        Color = "#FFFFFF",
+        LineColor = "#000000",
+        Interaction = "Solid",
+        DrawType = "Bordered"
     }
-}
+ }
 
 function SolidcolorEntity.sprite(room, entity)
     local x, y = entity.x or 0, entity.y or 0

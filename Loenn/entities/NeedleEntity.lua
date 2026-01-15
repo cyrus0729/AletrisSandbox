@@ -20,30 +20,30 @@ local function createNeedle(truename,displayname,rotation,mini)
     
     NeedleEntity.name = truename
     NeedleEntity.fieldInformation = {
-        hitbox = {
-        options = {"NeedleHelper", "Forgiving", "Unforgiving"},
-        editable = false
-        },
-        isMini = {
-            fieldType = "boolean",
-            default = false
-        }
+        hitbox = { options = {"NeedleHelper", "Forgiving", "Unforgiving"}, editable = false, default = "NeedleHelper" },
+        isMini = { fieldType = "boolean", default = false },
+        Sprite = { fieldType = "string", default = (mini and "MiniNeedleEntity" or "NeedleEntity") },
+        kill = { fieldType = "boolean", default = true }
     }
+
+    NeedleEntity.fieldOrder = {"x","y","Sprite","hitbox","isMini","kill"}
 
     NeedleEntity.offset = function(room, entity) return entity.isMini and {0.5, 0.5} or {0, 0} end
 
     NeedleEntity.placements = {
         {
             name = displayname,
+            placementType = "point",
             data = {
-                Sprite = (mini and "MiniNeedleEntity" or "NeedleEntity"),
                 hitbox = "NeedleHelper",
-                isMini = mini,
+                isMini = false,
+                Sprite = (mini and "MiniNeedleEntity" or "NeedleEntity"),
                 kill = true
-            },
-            fieldOrder = {"x","y","Sprite","hitbox","isMini","kill"}
+            }
         }
     }
+
+    NeedleEntity.justification = (mini and {-0.5,-0.5} or {0,0})
 
     NeedleEntity.sprite = function(room,entity)
         local sprite 

@@ -1,312 +1,287 @@
-using CyrusSandbox.Entities;
+using Celeste;
+using AletrisSandbox.Entities;
 using Microsoft.Xna.Framework;
 using Monocle;
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 
-namespace Celeste
+namespace AletrisSandbox.Entities
 {
-    // Token: 0x020003B0 RID: 944
+    //Stole the code from SeekerBarrierRenderer verbatim, changed the values I needed to to search for UnholdableBarrier, and it just worked lmao
     [Tracked(false)]
     public class UnholdableBarrierRenderer : Entity
     {
-        public UnholdableBarrier Parent;
-        public bool Visible;
-        public Vector2 A;
-        public Vector2 B;
-        public Vector2 Min;
-        public Vector2 Max;
-        public Vector2 Normal;
-        public Vector2 Perpendicular;
-        public float[] Wave;
-        public float Length;
-
-        private List<UnholdableBarrier> list;
-        private List<UnholdableBarrierRenderer.Edge> edges;
-        private VirtualMap<bool> tiles;
-        private Rectangle levelTileBounds;
-        private bool dirty;
-        private class Edge;
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public Edge(UnholdableBarrier parent, Vector2 a, Vector2 b)
+        private class Edge
         {
-            this.Parent = parent;
-            this.Visible = true;
-            this.A = a;
-            this.B = b;
-            this.Min = new Vector2(Math.Min(a.X, b.X), Math.Min(a.Y, b.Y));
-            this.Max = new Vector2(Math.Max(a.X, b.X), Math.Max(a.Y, b.Y));
-            this.Normal = (b - a).SafeNormalize();
-            this.Perpendicular = -this.Normal.Perpendicular();
-            this.Length = (a - b).Length();
-        }
+            public UnholdableBarrier Parent;
 
-        // Token: 0x06001960 RID: 6496 RVA: 0x00078218 File Offset: 0x00076418
-        [MethodImpl(MethodImplOptions.NoInlining)]
+            public bool Visible;
+
+            public Vector2 A;
+
+            public Vector2 B;
+
+            public Vector2 Min;
+
+            public Vector2 Max;
+
+            public Vector2 Normal;
+
+            public Vector2 Perpendicular;
+
+            public float[] Wave;
+            public float Length;
+
+            public Edge(UnholdableBarrier parent, Vector2 a, Vector2 b)
+            {
+                Parent = parent;
+                Visible = true;
+                A = a;
+                B = b;
+                Min = new Vector2(Math.Min(a.X, b.X), Math.Min(a.Y, b.Y));
+                Max = new Vector2(Math.Max(a.X, b.X), Math.Max(a.Y, b.Y));
+                Normal = (b - a).SafeNormalize();
+                Perpendicular = -Normal.Perpendicular();
+                Length = (a - b).Length();
+            }
+
+            public void UpdateWave(float time)
+            {
+                if (Wave == null || (float)Wave.Length <= Length)
+                {
+                    Wave = new float[(int)Length + 2];
+                }
+                for (int i = 0; (float)i <= Length; i++)
+                {
+                    Wave[i] = GetWaveAt(time, i, Length);
+                }
+            }
+
+            private float GetWaveAt(float offset, float along, float length)
+            {
+                if (along <= 1f || along >= length - 1f)
+                {
+                    return 0f;
+                }
+                if (Parent.Solidify >= 1f)
+                {
+                    return 0f;
+                }
+                float num = offset + along * 0.25f;
+                float num2 = (float)(Math.Sin(num) * 2.0 + Math.Sin(num * 0.25f));
+                return (1f + num2 * Ease.SineInOut(Calc.YoYo(along / length))) * (1f - Parent.Solidify);
+            }
+
+            public bool InView(ref Rectangle view)
+            {
+                if ((float)view.Left < Parent.X + Max.X && (float)view.Right > Parent.X + Min.X && (float)view.Top < Parent.Y + Max.Y)
+                {
+                    return (float)view.Bottom > Parent.Y + Min.Y;
+                }
+                return false;
+            }
+        }
+        private List<UnholdableBarrier> list = new List<UnholdableBarrier>();
+
+        private List<Edge> edges = new List<Edge>();
+
+        private VirtualMap<bool> tiles;
+
+        private Rectangle levelTileBounds;
+
+        private bool dirty;
+
         public UnholdableBarrierRenderer()
         {
-            this.list = new List<UnholdableBarrier>();
-            this.edges = new List<UnholdableBarrierRenderer.Edge>();
-            base.Tag = (Tags.Global | Tags.TransitionUpdate);
+            base.Tag = ((int)Tags.Global | (int)Tags.TransitionUpdate);
             base.Depth = 0;
-            base.Add(new CustomBloom(new Action(this.OnRenderBloom)));
+            Add(new CustomBloom(OnRenderBloom));
         }
 
-        // Token: 0x06001961 RID: 6497 RVA: 0x0007827C File Offset: 0x0007647C
-        [MethodImpl(MethodImplOptions.NoInlining)]
+        public override void Awake(Scene scene)
+        {
+            base.Awake(scene);
+        }
+
         public void Track(UnholdableBarrier block)
         {
-            this.list.Add(block);
-            if (this.tiles == null)
+            list.Add(block);
+            if (tiles == null)
             {
-                this.levelTileBounds = (base.Scene as Level).TileBounds;
-                this.tiles = new VirtualMap<bool>(this.levelTileBounds.Width, this.levelTileBounds.Height, false);
+                levelTileBounds = (base.Scene as Level).TileBounds;
+                tiles = new VirtualMap<bool>(levelTileBounds.Width, levelTileBounds.Height, emptyValue: false);
             }
-            int num = (int)block.X / 8;
-            while ((float)num < block.Right / 8f)
+            for (int i = (int)block.X / 8; (float)i < block.Right / 8f; i++)
             {
-                int num2 = (int)block.Y / 8;
-                while ((float)num2 < block.Bottom / 8f)
+                for (int j = (int)block.Y / 8; (float)j < block.Bottom / 8f; j++)
                 {
-                    this.tiles[num - this.levelTileBounds.X, num2 - this.levelTileBounds.Y] = true;
-                    num2++;
+                    tiles[i - levelTileBounds.X, j - levelTileBounds.Y] = true;
                 }
-                num++;
             }
-            this.dirty = true;
+            dirty = true;
         }
 
-        // Token: 0x06001962 RID: 6498 RVA: 0x00078344 File Offset: 0x00076544
-        [MethodImpl(MethodImplOptions.NoInlining)]
         public void Untrack(UnholdableBarrier block)
         {
-            this.list.Remove(block);
-            if (this.list.Count <= 0)
+            list.Remove(block);
+            if (list.Count <= 0)
             {
-                this.tiles = null;
+                tiles = null;
             }
             else
             {
-                int num = (int)block.X / 8;
-                while ((float)num < block.Right / 8f)
+                for (int i = (int)block.X / 8; (float)i < block.Right / 8f; i++)
                 {
-                    int num2 = (int)block.Y / 8;
-                    while ((float)num2 < block.Bottom / 8f)
+                    for (int j = (int)block.Y / 8; (float)j < block.Bottom / 8f; j++)
                     {
-                        this.tiles[num - this.levelTileBounds.X, num2 - this.levelTileBounds.Y] = false;
-                        num2++;
+                        tiles[i - levelTileBounds.X, j - levelTileBounds.Y] = false;
                     }
-                    num++;
                 }
             }
-            this.dirty = true;
+            dirty = true;
         }
 
-        // Token: 0x06001963 RID: 6499 RVA: 0x000783E2 File Offset: 0x000765E2
-        [MethodImpl(MethodImplOptions.NoInlining)]
         public override void Update()
         {
-            if (this.dirty)
+            if (dirty)
             {
-                this.RebuildEdges();
+                RebuildEdges();
             }
-            this.UpdateEdges();
+            UpdateEdges();
         }
 
-        // Token: 0x06001964 RID: 6500 RVA: 0x000783F8 File Offset: 0x000765F8
-        [MethodImpl(MethodImplOptions.NoInlining)]
         public void UpdateEdges()
         {
             Camera camera = (base.Scene as Level).Camera;
-            Rectangle rectangle = new Rectangle((int)camera.Left - 4, (int)camera.Top - 4, (int)(camera.Right - camera.Left) + 8, (int)(camera.Bottom - camera.Top) + 8);
-            for (int i = 0; i < this.edges.Count; i++)
+            Rectangle view = new Rectangle((int)camera.Left - 4, (int)camera.Top - 4, (int)(camera.Right - camera.Left) + 8, (int)(camera.Bottom - camera.Top) + 8);
+            for (int i = 0; i < edges.Count; i++)
             {
-                if (this.edges[i].Visible)
+                if (edges[i].Visible)
                 {
-                    if (base.Scene.OnInterval(0.25f, (float)i * 0.01f) && !this.edges[i].InView(ref rectangle))
+                    if (base.Scene.OnInterval(0.25f, (float)i * 0.01f) && !edges[i].InView(ref view))
                     {
-                        this.edges[i].Visible = false;
+                        edges[i].Visible = false;
                     }
                 }
-                else if (base.Scene.OnInterval(0.05f, (float)i * 0.01f) && this.edges[i].InView(ref rectangle))
+                else if (base.Scene.OnInterval(0.05f, (float)i * 0.01f) && edges[i].InView(ref view))
                 {
-                    this.edges[i].Visible = true;
+                    edges[i].Visible = true;
                 }
-                if (this.edges[i].Visible && (base.Scene.OnInterval(0.05f, (float)i * 0.01f) || this.edges[i].Wave == null))
+                if (edges[i].Visible && (base.Scene.OnInterval(0.05f, (float)i * 0.01f) || edges[i].Wave == null))
                 {
-                    this.edges[i].UpdateWave(base.Scene.TimeActive * 3f);
+                    edges[i].UpdateWave(base.Scene.TimeActive * 3f);
                 }
             }
         }
 
-        // Token: 0x06001965 RID: 6501 RVA: 0x00078564 File Offset: 0x00076764
-        [MethodImpl(MethodImplOptions.NoInlining)]
         private void RebuildEdges()
         {
-            this.dirty = false;
-            this.edges.Clear();
-            if (this.list.Count > 0)
+            dirty = false;
+            edges.Clear();
+            if (list.Count > 0)
             {
-                Level level = base.Scene as Level;
-                int left = level.TileBounds.Left;
-                int top = level.TileBounds.Top;
-                int right = level.TileBounds.Right;
-                int bottom = level.TileBounds.Bottom;
-                Point[] array = new Point[]
+                Level obj = base.Scene as Level;
+                _ = obj.TileBounds.Left;
+                _ = obj.TileBounds.Top;
+                _ = obj.TileBounds.Right;
+                _ = obj.TileBounds.Bottom;
+                Point[] array = new Point[4]
                 {
-                    new Point(0, -1),
-                    new Point(0, 1),
-                    new Point(-1, 0),
-                    new Point(1, 0)
+                new Point(0, -1),
+                new Point(0, 1),
+                new Point(-1, 0),
+                new Point(1, 0)
                 };
-                foreach (UnholdableBarrier seekerBarrier in this.list)
+                foreach (UnholdableBarrier item in list)
                 {
-                    int num = (int)seekerBarrier.X / 8;
-                    while ((float)num < seekerBarrier.Right / 8f)
+                    for (int i = (int)item.X / 8; (float)i < item.Right / 8f; i++)
                     {
-                        int num2 = (int)seekerBarrier.Y / 8;
-                        while ((float)num2 < seekerBarrier.Bottom / 8f)
+                        for (int j = (int)item.Y / 8; (float)j < item.Bottom / 8f; j++)
                         {
-                            foreach (Point point in array)
+                            Point[] array2 = array;
+                            for (int k = 0; k < array2.Length; k++)
                             {
+                                Point point = array2[k];
                                 Point point2 = new Point(-point.Y, point.X);
-                                if (!this.Inside(num + point.X, num2 + point.Y) && (!this.Inside(num - point2.X, num2 - point2.Y) || this.Inside(num + point.X - point2.X, num2 + point.Y - point2.Y)))
+                                if (!Inside(i + point.X, j + point.Y) && (!Inside(i - point2.X, j - point2.Y) || Inside(i + point.X - point2.X, j + point.Y - point2.Y)))
                                 {
-                                    Point point3 = new Point(num, num2);
-                                    Point point4 = new Point(num + point2.X, num2 + point2.Y);
-                                    Vector2 value = new Vector2(4f) + new Vector2((float)(point.X - point2.X), (float)(point.Y - point2.Y)) * 4f;
-                                    while (this.Inside(point4.X, point4.Y) && !this.Inside(point4.X + point.X, point4.Y + point.Y))
+                                    Point point3 = new Point(i, j);
+                                    Point point4 = new Point(i + point2.X, j + point2.Y);
+                                    Vector2 value = new Vector2(4f) + new Vector2(point.X - point2.X, point.Y - point2.Y) * 4f;
+                                    while (Inside(point4.X, point4.Y) && !Inside(point4.X + point.X, point4.Y + point.Y))
                                     {
                                         point4.X += point2.X;
                                         point4.Y += point2.Y;
                                     }
-                                    Vector2 a = new Vector2((float)point3.X, (float)point3.Y) * 8f + value - seekerBarrier.Position;
-                                    Vector2 b = new Vector2((float)point4.X, (float)point4.Y) * 8f + value - seekerBarrier.Position;
-                                    this.edges.Add(new UnholdableBarrierRenderer.Edge(seekerBarrier, a, b));
+                                    Vector2 a = new Vector2(point3.X, point3.Y) * 8f + value - item.Position;
+                                    Vector2 b = new Vector2(point4.X, point4.Y) * 8f + value - item.Position;
+                                    edges.Add(new Edge(item, a, b));
                                 }
                             }
-                            num2++;
                         }
-                        num++;
                     }
                 }
             }
         }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
         private bool Inside(int tx, int ty)
         {
-            return this.tiles[tx - this.levelTileBounds.X, ty - this.levelTileBounds.Y];
+            return tiles[tx - levelTileBounds.X, ty - levelTileBounds.Y];
         }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
         private void OnRenderBloom()
         {
             Camera camera = (base.Scene as Level).Camera;
-            new Rectangle((int)camera.Left, (int)camera.Top, (int)(camera.Right - camera.Left), (int)(camera.Bottom - camera.Top));
-            foreach (UnholdableBarrier seekerBarrier in this.list)
+            foreach (UnholdableBarrier item in list)
             {
-                if (seekerBarrier.Visible)
+                if (item.Visible)
                 {
-                    Draw.Rect(seekerBarrier.X, seekerBarrier.Y, seekerBarrier.Width, seekerBarrier.Height, Color.White);
+                    Draw.Rect(item.X, item.Y, item.Width, item.Height, Color.White);
                 }
             }
-            foreach (UnholdableBarrierRenderer.Edge edge in this.edges)
+            foreach (Edge edge in edges)
             {
                 if (edge.Visible)
                 {
                     Vector2 value = edge.Parent.Position + edge.A;
-                    edge.Parent.Position + edge.B;
-                    int num = 0;
-                    while ((float)num <= edge.Length)
+                    _ = edge.Parent.Position + edge.B;
+                    for (int i = 0; (float)i <= edge.Length; i++)
                     {
-                        Vector2 vector = value + edge.Normal * (float)num;
-                        Draw.Line(vector, vector + edge.Perpendicular * edge.Wave[num], Color.White);
-                        num++;
+                        Vector2 vector = value + edge.Normal * i;
+                        Draw.Line(vector, vector + edge.Perpendicular * edge.Wave[i], Color.White);
                     }
                 }
             }
         }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
         public override void Render()
         {
-            if (this.list.Count <= 0)
+            if (list.Count > 0)
             {
-                return;
-            }
-            Color color = Color.White * 0.15f;
-            Color value = Color.White * 0.25f;
-            foreach (UnholdableBarrier seekerBarrier in this.list)
-            {
-                if (seekerBarrier.Visible)
+                foreach (UnholdableBarrier item in list)
                 {
-                    Draw.Rect(seekerBarrier.Collider, color);
-                }
-            }
-            if (this.edges.Count > 0)
-            {
-                foreach (UnholdableBarrierRenderer.Edge edge in this.edges)
-                {
-                    if (edge.Visible)
+                    if (item.Visible)
                     {
-                        Vector2 value2 = edge.Parent.Position + edge.A;
-                        edge.Parent.Position + edge.B;
-                        Color.Lerp(value, Color.White, edge.Parent.Flash);
-                        int num = 0;
-                        while ((float)num <= edge.Length)
+                        Draw.Rect(item.Collider, Color.SaddleBrown * 0.15f);
+                    }
+                }
+                if (edges.Count > 0)
+                {
+                    foreach (Edge edge in edges)
+                    {
+                        if (edge.Visible)
                         {
-                            Vector2 vector = value2 + edge.Normal * (float)num;
-                            Draw.Line(vector, vector + edge.Perpendicular * edge.Wave[num], color);
-                            num++;
+                            Vector2 value2 = edge.Parent.Position + edge.A;
+                            _ = edge.Parent.Position + edge.B;
+                            for (int i = 0; (float)i <= edge.Length; i++)
+                            {
+                                Vector2 vector = value2 + edge.Normal * i;
+                                Draw.Line(vector, vector + edge.Perpendicular * edge.Wave[i], Color.SaddleBrown * 0.25f);
+                            }
                         }
                     }
                 }
             }
         }
-
-        {
-
-            [MethodImpl(MethodImplOptions.NoInlining)]
-        public void UpdateWave(float time)
-        {
-            if (this.Wave == null || (float)this.Wave.Length <= this.Length)
-            {
-                this.Wave = new float[(int)this.Length + 2];
-            }
-            int num = 0;
-            while ((float)num <= this.Length)
-            {
-                this.Wave[num] = this.GetWaveAt(time, (float)num, this.Length);
-                num++;
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private float GetWaveAt(float offset, float along, float length)
-        {
-            if (along <= 1f || along >= length - 1f)
-            {
-                return 0f;
-            }
-            if (this.Parent.Solidify >= 1f)
-            {
-                return 0f;
-            }
-            float num = offset + along * 0.25f;
-            float num2 = (float)(Math.Sin((double)num) * 2.0 + Math.Sin((double)(num * 0.25f)));
-            return (1f + num2 * Ease.SineInOut(Calc.YoYo(along / length))) * (1f - this.Parent.Solidify);
-        }
-
-        // Token: 0x0600196C RID: 6508 RVA: 0x00078DB0 File Offset: 0x00076FB0
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        public bool InView(ref Rectangle view)
-        {
-            return (float)view.Left < this.Parent.X + this.Max.X && (float)view.Right > this.Parent.X + this.Min.X && (float)view.Top < this.Parent.Y + this.Max.Y && (float)view.Bottom > this.Parent.Y + this.Min.Y;
-        }
-
     }
-}
 }

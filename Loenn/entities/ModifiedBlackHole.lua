@@ -4,15 +4,24 @@ local blackhole = {}
 
 blackhole.name = "AletrisSandbox/ModifiedBlackHole"
 
+blackhole.fieldInformation = {
+        SpeedModifier = { fieldType = "number", default = 1.02 },
+        ForceModifier = { fieldType = "number", default = 0.8 },
+        auraRadius = { fieldType = "number", default = 48 },
+        holeRadius = { fieldType = "number", default = 8 },
+}
+
+blackhole. fieldOrder = {"x","y","SpeedModifier","ForceModifier","auraRadius","holeRadius"}
+
 blackhole.placements = {
     name = "Modified Black Hole",
+    placementType = "point",
     data = {
         SpeedModifier = 1.02,
         ForceModifier = 0.8,
         auraRadius = 48,
-        holeRadius = 8,
-    },
-    fieldOrder = {"x","y","SpeedModifier","ForceModifier","auraRadius","holeRadius"}
+        holeRadius = 8
+    }
 }
 
 blackhole.texture = "AletrisSandbox/ModifiedBlackHole/LoennPreview"

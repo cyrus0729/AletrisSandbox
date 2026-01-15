@@ -7,6 +7,7 @@ namespace Celeste.Mod.AletrisSandbox.Triggers
     public class ToggleGunTrigger : Trigger
     {
         public bool enableGun;
+        public bool visibleGun;
         public bool Autofire;
         public bool mouseControl;
         public bool destroyStuff;
@@ -16,6 +17,7 @@ namespace Celeste.Mod.AletrisSandbox.Triggers
         public ToggleGunTrigger(EntityData data, Vector2 offset) : base(data, offset)
         {
             enableGun = data.Bool("Enable", true);
+            visibleGun = data.Bool("Display", true);
             Autofire = data.Bool("Autofire", false);
             mouseControl = data.Bool("MouseControl", false);
             destroyStuff = data.Bool("DestroyStuff", false);
@@ -26,8 +28,8 @@ namespace Celeste.Mod.AletrisSandbox.Triggers
         public override void OnEnter(Player player) // start
         {
             base.OnEnter(player);
-            if (player.StateMachine.state != 0) return;
             AletrisSandboxModule.Session.IWBTGGunEnabled = enableGun;
+            AletrisSandboxModule.Session.IWBTGGunVisible = visibleGun;
             AletrisSandboxModule.Session.Maxbullets = maxBullets;
             AletrisSandboxModule.Session.IWBTGGunMouseAimEnabled = mouseControl;
             AletrisSandboxModule.Session.IWBTGGunAutofireEnabled = Autofire;

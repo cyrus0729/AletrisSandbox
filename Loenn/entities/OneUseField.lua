@@ -1,40 +1,40 @@
 local drawableRectangle = require('structs.drawable_rectangle')
 local utils = require("utils")
 
-local OneUseField = {
-    name = "AletrisSandbox/OneUseField",
-    depth = -8500,
-    placements = {
-        {
-            name = "One Use Field",
-            data = {
-                kill = false,
-                depth = -8500,
-                InactiveColor = "00ff00",
-                InactiveBorderColor = "008800",
-                ActivatingColor =  "ffff00",
-                ActivatingBorderColor = "888800",
-                ActiveColor = "ff0000",
-                ActiveBorderColor = "880000",
-                width = 8,
-                height = 8
-            },
-            fieldOrder = {"x","y","kill","depth","InactiveColor","InactiveBorderColor","ActivatingColor","ActivatingBorderColor","ActiveColor","ActiveBorderColor","width","height"}
-        },
-    },
-}
+local OneUseField = {}
+OneUseField.name = "AletrisSandbox/OneUseField"
+OneUseField.depth = -8500
 
 OneUseField.fieldInformation = {
-    interactType = {
-        options = {"Kill, Block"},
-        editable = false
-    },
-    InactiveColor = {fieldType = "color",allowXNAColors = true},
-    InactiveBorderColor = {fieldType = "color",allowXNAColors = true},
-    ActivatingColor = {fieldType = "color",allowXNAColors = true},
-    ActivatingBorderColor = {fieldType = "color",allowXNAColors = true},
-    ActiveColor = {fieldType = "color",allowXNAColors = true},
-    ActiveBorderColor = {fieldType = "color",allowXNAColors = true},
+    width = { fieldType = "integer", default = 16 },
+    height = { fieldType = "integer", default = 16 },
+    depth = {fieldType = "integer", default = -8500 },
+    interactType = { options = {"Kill, Block"}, editable = false, default = "Block" },
+    InactiveColor = {fieldType = "color",allowXNAColors = true, default = "#00FF00" },
+    InactiveBorderColor = {fieldType = "color",allowXNAColors = true, default = "#00CC00" },
+    ActivatingColor = {fieldType = "color",allowXNAColors = true, default = "#FFFF00" },
+    ActivatingBorderColor = {fieldType = "color",allowXNAColors = true, default = "#CCCC00" },
+    ActiveColor = {fieldType = "color",allowXNAColors = true, default = "#FF0000" },
+    ActiveBorderColor = {fieldType = "color",allowXNAColors = true, default = "#CC0000" },
+}
+
+OneUseField.fieldOrder = {"x","y","interactType","depth","InactiveColor","InactiveBorderColor","ActivatingColor","ActivatingBorderColor","ActiveColor","ActiveBorderColor","width","height"}
+
+OneUseField.placements = {
+    name = "One Use Field",
+    placementType = "rectangle",
+    data = {
+        width = 8,
+        height = 8,
+        depth = -8500,
+        interactType = "Block",
+        InactiveColor = "#00FF00",
+        InactiveBorderColor = "#00CC00",
+        ActivatingColor = "#FFFF00",
+        ActivatingBorderColor = "#CCCC00",
+        ActiveColor = "#FF0000",
+        ActiveBorderColor = "#CC0000"
+    }
 }
 
 function OneUseField.sprite(room,entity)

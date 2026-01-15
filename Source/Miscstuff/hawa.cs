@@ -1,34 +1,134 @@
+using System.Linq;
+
 namespace Celeste.Mod.AletrisSandbox;
 
 using Microsoft.Xna.Framework;
 using Monocle;
 using System.Text.RegularExpressions;
+using System.Collections.Generic;
 
-
-public class hawa
+public class Hawa
 {
+    public abstract class Wrapper(Vector2 position) : Entity(position)
+    {
+        // can somebody tell me how to add libs so i don't have to keep copying shit :gladeline:
+        public List<Entity> FindTargets(Vector2 node, Vector2[] nodes, Vector2 nodeOffset, bool allEntities, string onlyType)
+        {
+            List<Entity> entities = new();
+
+            //don't look for entity if allEntities and type is set
+            Entity targetEntity = null;
+
+            if (!allEntities || onlyType?.Length == 0)
+            {
+                targetEntity = FindNearest(node, onlyType);
+            }
+
+            if (allEntities)
+            {
+                foreach (Entity e in SceneAs<Level>().Entities)
+                {
+                    if ((onlyType?.Length == 0 && e.GetType() == targetEntity?.GetType()) || e.GetType().FullName == onlyType || e.GetType().Name == onlyType)
+                    {
+                        entities.Add(e);
+                    }
+                }
+            }
+            else
+            {
+                entities.Add(targetEntity);
+
+                foreach (Vector2 n in nodes)
+                {
+                    entities.Add(FindNearest(n + nodeOffset, onlyType));
+                }
+            }
+
+            return entities;
+        }
+
+        public Entity FindNearest(Vector2 pos, string type, Entity notEntity = null)
+        {
+            Entity entity = null;
+            float minDistance = float.MaxValue;
+
+            foreach (Entity e in SceneAs<Level>().Entities)
+            {
+                bool typeCorrect = e.GetType().FullName == type || e.GetType().Name == type;
+
+                if (
+                    e != notEntity &&
+                    e is not Wrapper &&
+                    e is not TrailManager &&
+                    (typeCorrect || e is not Player || e is not Trigger) &&
+                    (type?.Length == 0 || typeCorrect) &&
+                    Vector2.Distance(e.Center, pos) < minDistance
+                )
+                {
+                    entity = e;
+                    minDistance = Vector2.Distance(e.Center, pos);
+                }
+            }
+
+            return entity;
+        }
+
+        public T FindNearest<T>(Vector2 pos) where T : Entity
+        {
+            Entity entity = null;
+            float minDistance = float.MaxValue;
+
+            foreach (T e in SceneAs<Level>().Entities.FindAll<T>())
+            {
+                if (Vector2.Distance(e.Center, pos) < minDistance)
+                {
+                    entity = e;
+                    minDistance = Vector2.Distance(e.Center, pos);
+                }
+            }
+
+            return (T)entity;
+        }
+
+        public Entity FindById(int id)
+        {
+            foreach (Entity e in SceneAs<Level>().Entities)
+            {
+                if (e.SourceId.ID == id)
+                {
+                    return e;
+                }
+            }
+
+            return null;
+        }
+    }
+
     public static Collider ParseCollider(string str) // in format (R/C:X,Y,oX,oY)
     {
-        Logger.Log(LogLevel.Info, "AletrisSandbox", str);
-        Regex rgc = new Regex(@"^C:(-?\d+),(-?\d+),(-?\d+)$");
-        Regex rgr = new Regex(@"^R:(-?\d+),(-?\d+),(-?\d+),(-?\d+)$");
+        // Logger.Log(LogLevel.Info, "AletrisSandbox", str);
+        Regex rgc = new Regex(@"(C:(-?\d+),(-?\d+),(-?\d+))");
+        Regex rgr = new Regex(@"(R:(-?\d+),(-?\d+),(-?\d+),(-?\d+))");
         Match matchr = rgr.Match(str);
         Match matchc = rgc.Match(str);
 
-        if (matchr.Success)
+        Collider[] colliders = [];
+
+        if (matchr.Length > 0)
         {
             return new Hitbox(
-                float.Parse(matchr.Groups[1].Value),
                 float.Parse(matchr.Groups[2].Value),
                 float.Parse(matchr.Groups[3].Value),
-                float.Parse(matchr.Groups[4].Value));
+                float.Parse(matchr.Groups[4].Value),
+                float.Parse(matchr.Groups[5].Value));
         }
-        else if (matchc.Success)
+
+        if (matchc.Length > 0)
         {
             return new Circle(
-                float.Parse(matchc.Groups[1].Value),
                 float.Parse(matchc.Groups[2].Value),
-                float.Parse(matchc.Groups[3].Value));
+                float.Parse(matchc.Groups[3].Value),
+                float.Parse(matchc.Groups[4].Value));
         }
         else
         {

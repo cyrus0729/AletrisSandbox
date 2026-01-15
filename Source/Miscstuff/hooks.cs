@@ -14,6 +14,7 @@ namespace Celeste.Mod.AletrisSandbox.GunSupport
             On.Celeste.CrushBlock.ctor_Vector2_float_float_Axes_bool += KevinHook;
             On.Celeste.FlyFeather.ctor_Vector2_bool_bool += FeatherHook;
             On.Celeste.Bumper.ctor_Vector2_Nullable1 += BumperHook;
+
         }
         public static void Unload()
         {
@@ -34,7 +35,7 @@ namespace Celeste.Mod.AletrisSandbox.GunSupport
             }
 
             orig(self, position, attachToSolid, color);
-            self.Add(new AletrisSandboxModule.BulletCollider(CollisionHandler, self.Collider));
+            self.Add(new BulletCollider(CollisionHandler, self.Collider));
         }
 
         private static void KevinHook(On.Celeste.CrushBlock.orig_ctor_Vector2_float_float_Axes_bool orig, CrushBlock self, Vector2 position, float width, float height, CrushBlock.Axes axes, bool chillOut)
@@ -49,7 +50,7 @@ namespace Celeste.Mod.AletrisSandbox.GunSupport
             orig(self, position, width, height, axes, chillOut);
 
             Collider collidere = new Hitbox(self.Width + 4f, self.Height + 4f, self.Collider.Left - 2f, self.Collider.Top - 2f);
-            self.Add(new AletrisSandboxModule.BulletCollider(CollisionHandler, collidere));
+            self.Add(new BulletCollider(CollisionHandler, collidere));
         }
 
         private static void FeatherHook(On.Celeste.FlyFeather.orig_ctor_Vector2_bool_bool orig, FlyFeather self, Vector2 position, bool shielded, bool singleUse)
@@ -73,13 +74,14 @@ namespace Celeste.Mod.AletrisSandbox.GunSupport
                 }
             }
             orig(self, position, shielded, singleUse);
-            self.Add(new AletrisSandboxModule.BulletCollider(CollisionHandler, self.Collider));
+            self.Add(new BulletCollider(CollisionHandler, self.Collider));
         }
 
         private static void BumperHook(On.Celeste.Bumper.orig_ctor_Vector2_Nullable1 orig, Bumper self, Vector2 position, Vector2? node)
         {
             void CollisionHandler(IWBTGBullet bullet)
             {
+                if (!(AletrisSandboxModule.Settings.IWBTOptions.IWBTGGunHitsStuffOverride || AletrisSandboxModule.Session.IWBTGGunHitsStuff)) { return; }
                 if (self.fireMode)
                 {
                     Vector2 vector = (bullet.Position - self.Center).SafeNormalize();
@@ -107,7 +109,7 @@ namespace Celeste.Mod.AletrisSandbox.GunSupport
             }
 
             orig(self, position, node);
-            self.Add(new AletrisSandboxModule.BulletCollider(CollisionHandler, self.Collider));
+            self.Add(new BulletCollider(CollisionHandler, self.Collider));
 
         }
 
