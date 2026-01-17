@@ -20,28 +20,22 @@ public class Hawa
             Entity targetEntity = null;
 
             if (!allEntities || onlyType?.Length == 0)
-            {
                 targetEntity = FindNearest(node, onlyType);
-            }
 
             if (allEntities)
             {
-                foreach (Entity e in SceneAs<Level>().Entities)
+                foreach (var e in SceneAs<Level>().Entities)
                 {
                     if ((onlyType?.Length == 0 && e.GetType() == targetEntity?.GetType()) || e.GetType().FullName == onlyType || e.GetType().Name == onlyType)
-                    {
                         entities.Add(e);
-                    }
                 }
             }
             else
             {
                 entities.Add(targetEntity);
 
-                foreach (Vector2 n in nodes)
-                {
+                foreach (var n in nodes)
                     entities.Add(FindNearest(n + nodeOffset, onlyType));
-                }
             }
 
             return entities;
@@ -50,11 +44,11 @@ public class Hawa
         public Entity FindNearest(Vector2 pos, string type, Entity notEntity = null)
         {
             Entity entity = null;
-            float minDistance = float.MaxValue;
+            var minDistance = float.MaxValue;
 
-            foreach (Entity e in SceneAs<Level>().Entities)
+            foreach (var e in SceneAs<Level>().Entities)
             {
-                bool typeCorrect = e.GetType().FullName == type || e.GetType().Name == type;
+                var typeCorrect = e.GetType().FullName == type || e.GetType().Name == type;
 
                 if (
                     e != notEntity &&
@@ -76,9 +70,9 @@ public class Hawa
         public T FindNearest<T>(Vector2 pos) where T : Entity
         {
             Entity entity = null;
-            float minDistance = float.MaxValue;
+            var minDistance = float.MaxValue;
 
-            foreach (T e in SceneAs<Level>().Entities.FindAll<T>())
+            foreach (var e in SceneAs<Level>().Entities.FindAll<T>())
             {
                 if (Vector2.Distance(e.Center, pos) < minDistance)
                 {
@@ -92,12 +86,10 @@ public class Hawa
 
         public Entity FindById(int id)
         {
-            foreach (Entity e in SceneAs<Level>().Entities)
+            foreach (var e in SceneAs<Level>().Entities)
             {
                 if (e.SourceId.ID == id)
-                {
                     return e;
-                }
             }
 
             return null;
@@ -106,11 +98,10 @@ public class Hawa
 
     public static Collider ParseCollider(string str) // in format (R/C:X,Y,oX,oY)
     {
-        // Logger.Log(LogLevel.Info, "AletrisSandbox", str);
-        Regex rgc = new Regex(@"(C:(-?\d+),(-?\d+),(-?\d+))");
-        Regex rgr = new Regex(@"(R:(-?\d+),(-?\d+),(-?\d+),(-?\d+))");
-        Match matchr = rgr.Match(str);
-        Match matchc = rgc.Match(str);
+        var rgc = new Regex(@"(C:(-?\d+),(-?\d+),(-?\d+))");
+        var rgr = new Regex(@"(R:(-?\d+),(-?\d+),(-?\d+),(-?\d+))");
+        var matchr = rgr.Match(str);
+        var matchc = rgc.Match(str);
 
         Collider[] colliders = [];
 
@@ -130,11 +121,8 @@ public class Hawa
                 float.Parse(matchc.Groups[3].Value),
                 float.Parse(matchc.Groups[4].Value));
         }
-        else
-        {
-            Logger.Log(LogLevel.Warn, "AletrisSandbox", "Wrong syntax for string " + str + "! (R:X,Y,oX,oY)/(C:R,X,Y)");
+        Logger.Log(LogLevel.Warn, nameof(AletrisSandboxModule), "Wrong syntax for string " + str + "! (R:X,Y,oX,oY)/(C:R,X,Y)");
 
-            return new Hitbox(8f, 8f, -4f, -8f);
-        }
+        return new Hitbox(8f, 8f, -4f, -8f);
     }
 }

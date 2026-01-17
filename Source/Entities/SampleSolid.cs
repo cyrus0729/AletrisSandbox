@@ -1,15 +1,14 @@
 using Celeste.Mod.Entities;
 using Microsoft.Xna.Framework;
 
-namespace Celeste.Mod.AletrisSandbox.Entities
+namespace Celeste.Mod.AletrisSandbox.Entities;
+
+[CustomEntity("AletrisSandbox/SampleSolid")]
+public class SampleSolid : Solid
 {
-    [CustomEntity("AletrisSandbox/SampleSolid")]
-    public class SampleSolid : Solid
+    public SampleSolid(EntityData data, Vector2 offset)
+        : base(data.Position + offset, data.Width, data.Height, true)
     {
-        public SampleSolid(EntityData data, Vector2 offset)
-            : base(data.Position + offset, data.Width, data.Height, true)
-        {
-            // TODO: read properties from data
-        }
+        // TODO: read properties from data
     }
 }

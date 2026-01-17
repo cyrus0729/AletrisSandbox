@@ -1,6 +1,7 @@
 ﻿using Celeste.Mod.AletrisSandbox.Entities;
 using Microsoft.Xna.Framework;
 using Monocle;
+// ReSharper disable All
 
 // THANK YOU EVERYBODY IN #CODE_MODDING
 
@@ -14,6 +15,9 @@ namespace Celeste.Mod.AletrisSandbox.GunSupport
             On.Celeste.CrushBlock.ctor_Vector2_float_float_Axes_bool += KevinHook;
             On.Celeste.FlyFeather.ctor_Vector2_bool_bool += FeatherHook;
             On.Celeste.Bumper.ctor_Vector2_Nullable1 += BumperHook;
+            On.Celeste.Seeker.ctor_EntityData_Vector2 += SeekerHook;
+            On.Celeste.DashBlock.ctor_EntityData_Vector2_EntityID += DashBlockHook;
+            On.Celeste.TouchSwitch.ctor_EntityData_Vector2 += TouchSwitchHook;
 
         }
         public static void Unload()
@@ -22,6 +26,9 @@ namespace Celeste.Mod.AletrisSandbox.GunSupport
             On.Celeste.CrushBlock.ctor_Vector2_float_float_Axes_bool -= KevinHook;
             On.Celeste.FlyFeather.ctor_Vector2_bool_bool -= FeatherHook;
             On.Celeste.Bumper.ctor_Vector2_Nullable1 -= BumperHook;
+            On.Celeste.Seeker.ctor_EntityData_Vector2 -= SeekerHook;
+            On.Celeste.DashBlock.ctor_EntityData_Vector2_EntityID -= DashBlockHook;
+            On.Celeste.TouchSwitch.ctor_EntityData_Vector2 -= TouchSwitchHook;
         }
 
         private static void CrystalSpinnerHook(On.Celeste.CrystalStaticSpinner.orig_ctor_Vector2_bool_CrystalColor orig, CrystalStaticSpinner self, Vector2 position, bool attachToSolid, CrystalColor color)
@@ -113,6 +120,50 @@ namespace Celeste.Mod.AletrisSandbox.GunSupport
 
         }
 
+        private static void SeekerHook(On.Celeste.Seeker.orig_ctor_EntityData_Vector2 orig, Seeker self, EntityData data, Vector2 offset)
+        {
+            void CollisionHandler(IWBTGBullet bullet)
+            {
+                if (!(AletrisSandboxModule.Settings.IWBTOptions.IWBTGGunHitsStuffOverride || AletrisSandboxModule.Session.IWBTGGunHitsStuff)) { return; }
+                self.Speed = (self.Center - bullet.Center).SafeNormalize(2000f);
+                self.State.State = 6;
+                self.sprite.Scale = new Vector2(1.4f, 0.6f);
+                self.SceneAs<Level>().Particles.Emit(Seeker.P_Stomp, 8, self.Center - Vector2.UnitY * 5f, new Vector2(6f, 3f));
+                bullet.Kill();
+            }
+
+            orig(self, data, offset);
+            self.Add(new BulletCollider(CollisionHandler, self.Collider));
+        }
+
+        private static void DashBlockHook(On.Celeste.DashBlock.orig_ctor_EntityData_Vector2_EntityID orig, DashBlock self, EntityData data, Vector2 offset, EntityID id)
+        {
+
+            void CollisionHandler(IWBTGBullet bullet)
+            {
+                Logger.Log(LogLevel.Info,nameof(AletrisSandboxModule),"aaa");
+                bullet.Kill();
+                if (!(AletrisSandboxModule.Settings.IWBTOptions.IWBTGGunHitsStuffOverride || AletrisSandboxModule.Session.IWBTGGunHitsStuff)) { return; }
+                self.Break(bullet.Center, bullet.velocity, true, true);
+            }
+            orig(self, data, offset, id);
+            self.Add(new BulletCollider(CollisionHandler, self.Collider));
+        }
+
+        private static void TouchSwitchHook(On.Celeste.TouchSwitch.orig_ctor_EntityData_Vector2 orig, TouchSwitch self, EntityData data, Vector2 offset)
+        {
+            void CollisionHandler(IWBTGBullet bullet)
+            {
+                Logger.Log(LogLevel.Info, nameof(AletrisSandboxModule), "aaa");
+                bullet.Kill();
+
+                if (!(AletrisSandboxModule.Settings.IWBTOptions.IWBTGGunHitsStuffOverride || AletrisSandboxModule.Session.IWBTGGunHitsStuff)) { return; }
+
+            }
+
+            orig(self, data, offset);
+            self.Add(new BulletCollider(CollisionHandler, self.Collider));
+        }
 
     }
 }

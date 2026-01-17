@@ -3,151 +3,143 @@ using Celeste.Mod.Entities;
 using Microsoft.Xna.Framework;
 using Monocle;
 
-
 // thank you code_modding and especially kalobi and snip for dealing with me being dumb at code modding
 // without them this would not have worked
 
+namespace Celeste.Mod.AletrisSandbox.Entities;
 
-namespace Celeste.Mod.AletrisSandbox.Entities
+[CustomEntity("AletrisSandbox/IWBTGBullet"), Tracked]
+public class IWBTGBullet : Actor
 {
-    [CustomEntity("AletrisSandbox/IWBTGBullet")]
-    [Tracked]
-    public class IWBTGBullet : Actor
+    public Vector2 velocity;
+    public readonly Player owner;
+    bool dead;
+
+    readonly Collision onCollideH;
+    readonly Collision onCollideV;
+
+    int lifetime;
+
+    public IWBTGBullet(Vector2 position, Vector2 velocity, Player owner) : base(position)
     {
-        public Vector2 velocity;
-        public readonly Player owner;
-        private bool dead = false;
+        Position = position;
+        this.velocity = velocity;
+        this.owner = owner;
 
-        private readonly Collision onCollideH;
-        private readonly Collision onCollideV;
+        Depth = 100;
+        Collider = new Hitbox(4f, 4f);
 
-        private int lifetime;
+        onCollideH += OnCollideH;
+        onCollideV += OnCollideV;
 
-        public IWBTGBullet(Vector2 position, Vector2 velocity, Player owner) : base(position)
-        {
+        lifetime = 6000;
 
-            Position = position;
-            this.velocity = velocity;
-            this.owner = owner;
-
-            Depth = 100;
-            Collider = new Hitbox(4f, 4f, 0f, 0f);
-
-            onCollideH += OnCollideH;
-            onCollideV += OnCollideV;
-
-            lifetime = 6000;
-
-
-        #pragma warning disable CL013
-            (owner.Scene as Level).Add(this);
-        #pragma warning restore CL013
-            Add(new Image(GFX.Game["AletrisSandbox/gun/bullet"]));
-        }
-
-        private void OnCollideH(CollisionData data)
-        {
-            if (!(AletrisSandboxModule.Settings.IWBTOptions.IWBTGGunHitsStuffOverride || AletrisSandboxModule.Session.IWBTGGunHitsStuff))
-            {
-                Kill();
-                return;
-            }
-            if (data.Hit.ToString() == "Celeste.SolidTiles") { Kill(); return; }
-        }
-
-        private void OnCollideV(CollisionData data)
-        {
-            if (!(AletrisSandboxModule.Settings.IWBTOptions.IWBTGGunHitsStuffOverride || AletrisSandboxModule.Session.IWBTGGunHitsStuff))
-            {
-                Kill();
-                return;
-            }
-            if (data.Hit.ToString() == "Celeste.SolidTiles") { Kill(); return; }
-        }
-
-
-        public override void Update()
-        {
-
-            base.Update();
-
-            MoveH(velocity.X, onCollideH);
-            MoveV(velocity.Y, onCollideV);
-
-            if (--lifetime <= 0) { Kill(); }
-
-            /*Camera camera = (Scene as Level).Camera;
-            if (Position.X < camera.X || Position.X > camera.X + 320f ||
-                Position.Y < camera.Y || Position.Y > camera.Y + 180f)
-            {
-                Kill();
-            */
-
-            Level level = SceneAs<Level>();
-            if (Position.X <= level.Bounds.Left || Position.X >= level.Bounds.Right ||
-               Position.Y >= level.Bounds.Bottom || Position.Y <= level.Bounds.Top)
-            {
-                Kill();
-            }
-
-
-
-            foreach (BulletCollider co in Scene.Tracker.GetComponents<BulletCollider>())
-            {
-                if (co != null && co.Check(this))
-                {
-                    if (dead)
-                        return;
-
-                    co.OnCollide(this);
-                }
-            }
-        }
-
-        public override void Render()
-        {
-            if (owner.Scene != null)
-            {
-                //(owner.Scene as Level).Particles.Emit(ParticleTypes.SparkyDust, Position, Color.Yellow);
-            }
-            base.Render();
-        }
-
-        public void Kill()
-        {
-            dead = true;
-            RemoveSelf();
-        }
-
+    #pragma warning disable CL013
+        owner.SceneAs<Level>().Add(this);
+    #pragma warning restore CL013
+        Add(new Image(GFX.Game["AletrisSandbox/gun/bullet"]));
     }
 
-    [Tracked]
-    public class BulletCollider : Component
+    void OnCollideH(CollisionData data)
     {
-
-        private Collider collider;
-        public Action<IWBTGBullet> OnCollide;
-
-        public BulletCollider(Action<IWBTGBullet> onCollide, Collider collider = null)
-            : base(active: false, visible: false)
+        if (!(AletrisSandboxModule.Settings.IWBTOptions.IWBTGGunHitsStuffOverride || AletrisSandboxModule.Session.IWBTGGunHitsStuff))
         {
-            this.collider = collider;
-            OnCollide = onCollide;
+            Kill();
+
+            return;
         }
+        if (data.Hit.ToString() == "Celeste.SolidTiles")
+            Kill();
+    }
 
-        public bool Check(IWBTGBullet bullet)
+    void OnCollideV(CollisionData data)
+    {
+        if (!(AletrisSandboxModule.Settings.IWBTOptions.IWBTGGunHitsStuffOverride || AletrisSandboxModule.Session.IWBTGGunHitsStuff))
         {
-            Collider collider = Entity.Collider;
+            Kill();
 
-            if (this.collider != null)
+            return;
+        }
+        if (data.Hit.ToString() == "Celeste.SolidTiles")
+            Kill();
+    }
+
+    public override void Update()
+    {
+        base.Update();
+
+        MoveH(velocity.X, onCollideH);
+        MoveV(velocity.Y, onCollideV);
+
+        if (--lifetime <= 0)
+            Kill();
+
+        /*Camera camera = (Scene as Level).Camera;
+        if (Position.X < camera.X || Position.X > camera.X + 320f ||
+            Position.Y < camera.Y || Position.Y > camera.Y + 180f)
+        {
+            Kill();
+        */
+
+        var level = SceneAs<Level>();
+        if (Position.X <= level.Bounds.Left ||
+            Position.X >= level.Bounds.Right ||
+            Position.Y >= level.Bounds.Bottom ||
+            Position.Y <= level.Bounds.Top)
+            Kill();
+
+        foreach (var component in Scene.Tracker.GetComponents<BulletCollider>())
+        {
+            var co = (BulletCollider)component;
+
+            if (co != null && co.Check(this))
             {
-                Entity.Collider = this.collider;
+                if (dead)
+                    return;
+
+                co.OnCollide(this);
             }
-            bool result = bullet.CollideCheck(Entity);
+        }
+    }
+
+    public override void Render()
+    {
+        if (owner.Scene != null)
+        {
+            //(owner.Scene as Level).Particles.Emit(ParticleTypes.SparkyDust, Position, Color.Yellow);
+        }
+        base.Render();
+    }
+
+    public void Kill()
+    {
+        dead = true;
+        RemoveSelf();
+    }
+}
+
+[Tracked]
+public class BulletCollider : Component
+{
+    readonly Collider collider;
+    public Action<IWBTGBullet> OnCollide;
+
+    public BulletCollider(Action<IWBTGBullet> onCollide, Collider collider = null)
+        : base(active: false, visible: false)
+    {
+        this.collider = collider;
+        OnCollide = onCollide;
+    }
+
+    public bool Check(IWBTGBullet bullet)
+    {
+        var collide = Entity.Collider;
+
+        if (collider != null)
             Entity.Collider = collider;
+        var result = bullet.CollideCheck(Entity);
+        Entity.Collider = collide;
 
-            return result;
-        }
+        return result;
     }
-
 }

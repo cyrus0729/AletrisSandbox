@@ -2,93 +2,95 @@ using Celeste.Mod.Entities;
 using Microsoft.Xna.Framework;
 using Monocle;
 
-namespace Celeste.Mod.AletrisSandbox.Entities
+namespace Celeste.Mod.AletrisSandbox.Entities;
+
+[CustomEntity("AletrisSandbox/OneUseField")]
+public class OneUseField : Entity
 {
-    [CustomEntity("AletrisSandbox/OneUseField")]
-    public class OneUseField : Entity
+    public Color color;
+    public Color BorderColor;
+    public Color ActiveColor;
+    public Color ActiveBorderColor;
+    public Color ActivatingColor;
+    public Color ActivatingBorderColor;
+
+    public Color currentRectColor;
+    public Color currentRectBorderColor;
+
+    public new int depth;
+
+    public Solid solid;
+    bool killplayer;
+    bool kill;
+    public PlayerCollider pc;
+    bool hasCollided;
+
+    public OneUseField(EntityData data, Vector2 offset) : base(data.Position + offset)
     {
-        public Color color;
-        public Color BorderColor;
-        public Color ActiveColor;
-        public Color ActiveBorderColor;
-        public Color ActivatingColor;
-        public Color ActivatingBorderColor;
+        killplayer = data.Bool("kill");
+        depth = data.Int("Depth", 8500);
+        Depth = depth;
+        color = data.HexColor("inactiveolor", Calc.HexToColor("#00FF00"));
+        BorderColor = data.HexColor("inactivebordercolor", Calc.HexToColor("#008800"));
+        ActiveColor = data.HexColor("activecolor", Calc.HexToColor("#FF0000"));
+        ActiveBorderColor = data.HexColor("activebordercolor", Calc.HexToColor("#880000"));
+        ActivatingColor = data.HexColor("activatingcolor", Calc.HexToColor("#FFFF00"));
+        ActivatingBorderColor = data.HexColor("activatingbordercolor", Calc.HexToColor("#888800"));
+        Collider = new Hitbox(data.Width, data.Height);
+        Add(pc = new(OnCollide));
+    }
 
-        public Color currentRectColor;
-        public Color currentRectBorderColor;
+    void OnCollide(Player player)
+    {
+        if (OnCollide != null && kill)
+            player.Die((player.Center - Center).SafeNormalize());
+    }
 
-        public new int depth;
+    public override void Update()
+    {
+        if (Scene.Tracker.GetEntity<Player>() is not { } player)
+            return;
 
-        public Solid solid;
-        private bool killplayer;
-        private bool kill;
-        public PlayerCollider pc;
-        private bool hasCollided;
+        var check = CollideCheck<Player>();
 
-        public OneUseField(EntityData data, Vector2 offset) : base(data.Position + offset)
+        if (!hasCollided && check) // player entered
         {
-            killplayer = data.Bool("kill", false);
-            depth = data.Int("Depth", 8500);
-            Depth = depth;
-            color = data.HexColor("inactiveolor", Calc.HexToColor("#00FF00"));
-            BorderColor = data.HexColor("inactivebordercolor", Calc.HexToColor("#008800"));
-            ActiveColor = data.HexColor("activecolor", Calc.HexToColor("#FF0000"));
-            ActiveBorderColor = data.HexColor("activebordercolor", Calc.HexToColor("#880000"));
-            ActivatingColor = data.HexColor("activatingcolor", Calc.HexToColor("#FFFF00"));
-            ActivatingBorderColor = data.HexColor("activatingbordercolor", Calc.HexToColor("#888800"));
-            Collider = new Hitbox(data.Width, data.Height, 0f, 0f);
-            Add(pc = new PlayerCollider(OnCollide));
+            hasCollided = true;
+            currentRectColor = ActivatingColor;
+            currentRectBorderColor = ActivatingBorderColor;
         }
 
-        private void OnCollide(Player player)
+        if (hasCollided && !check) // player left
         {
-            if (OnCollide != null && kill)
+            currentRectColor = ActiveColor;
+            currentRectBorderColor = ActiveBorderColor;
+
+            switch (kill)
             {
-                player.Die((player.Center - base.Center).SafeNormalize());
+                case true:
+                    kill = true;
+
+                    break;
+                case false:
+                    Scene.Add(new Solid(Position, Width, Height, true));
+
+                    break;
             }
+            hasCollided = false;
         }
+    }
 
-        public override void Update()
-        {
-            if (Scene.Tracker.GetEntity<Player>() is not { } player) return;
-            bool check = CollideCheck<Player>();
-            if (!hasCollided && check) // player entered
-            {
-                hasCollided = true;
-                currentRectColor = ActivatingColor;
-                currentRectBorderColor = ActivatingBorderColor;
-            }
+    public override void Added(Scene scene)
+    {
+        base.Added(scene);
+        currentRectColor = color;
+        currentRectBorderColor = BorderColor;
+    }
 
-            if (hasCollided && !check) // player left
-            {
-                currentRectColor = ActiveColor;
-                currentRectBorderColor = ActiveBorderColor;
-                switch (kill)
-                {
-                    case true:
-                        kill = true;
-                        break;
-                    case false:
-                        Scene.Add(new Solid(Position, Width, Height, true));
-                        break;
-                }
-                hasCollided = false;
-            }
-        }
-
-        public override void Added(Scene scene)
-        {
-            base.Added(scene);
-            currentRectColor = color;
-            currentRectBorderColor = BorderColor;
-        }
-
-        public override void Render()
-        {
-            Draw.HollowRect(Collider, currentRectBorderColor);
-            Draw.Rect(Collider, currentRectColor);
-            base.Render();
-        }
-
+    public override void Render()
+    {
+        Draw.HollowRect(Collider, currentRectBorderColor);
+        Draw.Rect(Collider, currentRectColor);
+        base.Render();
     }
 }

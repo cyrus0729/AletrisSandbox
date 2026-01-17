@@ -8,9 +8,11 @@ rthdboi8riejhgpijtpfiqh3tf3eqt https://gamebanana.com/mods/600881
 əθ*|ɳɘ⁰ʟɛɴ[༊˧]ŋɳɘ⁰!!!
 
 ## to do
-- [-] entity hp
+- [√] entity hp
 - [?] player hp
 - [ ] entity spawner support for cherries
 - [ ] iwbtg water
 - [ ] avoidance controller
 - [ ] uhhhh i forgot
+- [ ] arrow entity maybe
+

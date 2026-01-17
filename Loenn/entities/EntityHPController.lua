@@ -11,10 +11,14 @@ EntityHPController.fieldInformation = {
     OnlyType = { fieldType = "string", default = "" },
     DeathSound = { fieldType = "string", default = "event:/aletris_sandbox/die" },
     HitSound = { fieldType = "string", default = "event:/aletris_sandbox/hit" },
-    IFrames = { fieldType = "integer", default = 0 }
+    IFrames = { fieldType = "integer", default = 0 },
+    DrawHP = { fieldType = "boolean", default = true }
 }
 
-EntityHPController.fieldOrder = {"x","y","HP","DamageIncrement","flagOnKillAll","OnlyType","DeathSound","HitSound","IFrames","Boss"}
+EntityHPController.fieldOrder = {"x","y","HP","DamageIncrement","flagOnKillAll","OnlyType","DeathSound","HitSound","IFrames","Boss","DrawHP"}
+
+EntityHPController.nodeLimits = {0,-1}
+EntityHPController.nodeLineRenderType = "fan"
 
 EntityHPController.placements = { 
     name = "Entity HP Controller",
@@ -23,11 +27,12 @@ EntityHPController.placements = {
         HP = 0,
         DamageIncrement = 0,
         Boss = false,
-        flagOnkillAll = "",
+        flagOnKillAll = "",
         OnlyType = "",
-        DeathSound = "",
-        HitSound = "",
-        IFrames = ""
+        DeathSound = "event:/aletris_sandbox/die",
+        HitSound = "event:/aletris_sandbox/hi",
+        IFrames = 0,
+        DrawHP = true
     }
 }
 

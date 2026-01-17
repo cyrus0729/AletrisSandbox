@@ -1,42 +1,40 @@
 using Celeste.Mod.Entities;
 using Microsoft.Xna.Framework;
 
-namespace Celeste.Mod.AletrisSandbox.Entities
+namespace Celeste.Mod.AletrisSandbox.Entities;
+
+[CustomEntity("AletrisSandbox/MomentumPuffer")]
+public class MomentumPuffer : Puffer
 {
-    [CustomEntity("AletrisSandbox/MomentumPuffer")]
-    public class MomentumPuffer : Puffer
+    public MomentumPuffer(EntityData data, Vector2 offset)
+        : base(data.Position + offset, data.Bool("right"))
     {
-        public MomentumPuffer(EntityData data, Vector2 offset)
-            : base(data.Position + offset, data.Bool("right", false))
-        {
-            Get<PlayerCollider>().OnCollide = OnPlayerHit;
-        }
+        Get<PlayerCollider>().OnCollide = OnPlayerHit;
+    }
 
-        public void OnPlayerHit(Player player)
+    public void OnPlayerHit(Player player)
+    {
+        if (state != States.Gone && cantExplodeTimer <= 0f)
         {
-            if (this.state != Puffer.States.Gone && this.cantExplodeTimer <= 0f)
+            if (cannotHitTimer <= 0f)
             {
-                if (this.cannotHitTimer <= 0f)
+                if (player.Bottom > lastSpeedPosition.Y + 3f)
                 {
-                    if (player.Bottom > this.lastSpeedPosition.Y + 3f)
-                    {
-                        this.Explode();
-                        this.GotoGone();
-                    }
-                    else
-                    {
-                        player.Bounce(base.Top);
-                        this.GotoHit(player.Center);
-                        base.MoveToX(this.anchorPosition.X * player.Speed.X, null);
-                        base.MoveToY(this.anchorPosition.Y * player.Speed.Y, null);
-                        this.idleSine.Reset();
-                        this.anchorPosition = (this.lastSinePosition = this.Position);
-                        this.eyeSpin = 1f;
-                    }
+                    Explode();
+                    GotoGone();
                 }
-                this.cannotHitTimer = 0.1f;
+                else
+                {
+                    player.Bounce(Top);
+                    GotoHit(player.Center);
+                    MoveToX(anchorPosition.X * player.Speed.X);
+                    MoveToY(anchorPosition.Y * player.Speed.Y);
+                    idleSine.Reset();
+                    anchorPosition = lastSinePosition = Position;
+                    eyeSpin = 1f;
+                }
             }
+            cannotHitTimer = 0.1f;
         }
-
     }
 }

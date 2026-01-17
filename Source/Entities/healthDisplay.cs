@@ -4,36 +4,33 @@ using Microsoft.Xna.Framework.Graphics;
 using Monocle;
 using System;
 
-namespace Celeste.Mod.AletrisSandbox.Entities
+namespace Celeste.Mod.AletrisSandbox.Entities;
+
+[Tracked, CustomEntity("AletrisSandbox/healthDisplay")]
+public class healthDisplay : Entity
 {
-    [Tracked]
-    [CustomEntity("AletrisSandbox/healthDisplay")]
-    public class healthDisplay : Entity
+    public int currentHP = AletrisSandboxModule.Session.HPAmount;
+
+    public int maxHP = AletrisSandboxModule.Session.HPMax;
+
+    public healthDisplay()
     {
+        Tag = Tags.HUD | Tags.Global;
+        Add(new BeforeRenderHook(DrawHP));
+    }
 
-        public int currentHP = AletrisSandboxModule.Session.HPAmount;
+    static void StartSpriteBatch()
+    {
+        Draw.SpriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone);
+    }
 
-        public int maxHP = AletrisSandboxModule.Session.HPMax;
+    static void EndSpriteBatch()
+    {
+        Draw.SpriteBatch.End();
+    }
 
-        public healthDisplay()
-        {
-            Tag = Tags.HUD | Tags.Global;
-            Add(new BeforeRenderHook(new Action(DrawHP)));
-        }
-
-        private static void StartSpriteBatch()
-        {
-            Draw.SpriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone);
-        }
-        private static void EndSpriteBatch()
-        {
-            Draw.SpriteBatch.End();
-        }
-
-        private void DrawHP()
-        {
-            ActiveFont.Draw(AletrisSandboxModule.Session.HPAmount.ToString() + "/" + AletrisSandboxModule.Session.HPMax.ToString(), new Vector2(720f, 144f), Color.White);
-        }
-
+    void DrawHP()
+    {
+        ActiveFont.Draw(AletrisSandboxModule.Session.HPAmount + "/" + AletrisSandboxModule.Session.HPMax, new(720f, 144f), Color.White);
     }
 }
