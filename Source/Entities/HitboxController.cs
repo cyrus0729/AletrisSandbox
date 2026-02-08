@@ -40,6 +40,8 @@ public class HitboxController : Entity
         newfeatherHurtbox = Hawa.ParseCollider(data.Attr("featherHurtbox"));
 
         ModifyHitbox = data.Bool("modifyHitbox");
+
+        if (ModifyHitbox) { Add(GFX.SpriteBank.Create("HitboxController")); }
     }
 
     public class HitboxHurtboxData
@@ -64,6 +66,7 @@ public class HitboxController : Entity
 
     void UpdatePlayerHitboxes(Player playr, HitboxHurtboxData data)
     {
+        Logger.Log(LogLevel.Info,nameof(AletrisSandboxModule),"Updated Player Hitbox to: " + data);
         playr.normalHitbox.Width = data.NormalHitbox.Width;
         playr.normalHitbox.Height = data.NormalHitbox.Height;
         playr.normalHitbox.Position = data.NormalHitbox.Position;

@@ -5,16 +5,20 @@ MouseController.depth = -8500
 MouseController.texture = "objects/AletrisSandbox/MouseController/idle00"
 
 MouseController.fieldInformation = {
-    Enabled = { fieldType = "boolean", default = true }
+    Enabled = { fieldType = "boolean", default = true },
+    Forced = { fieldType = "boolean", default = false },
+    Visible = { fieldType = "boolean", default = false }
 }
 
-MouseController.fieldOrder = { "x", "y", "Enabled" }
+MouseController.fieldOrder = { "x", "y", "Enabled", "Forced", "Visible" }
 
 MouseController.placements = {
-    name = "Mouse Control ler",
+    name = "Mouse Controls Controller",
     placementType = "point",
     data = {
-        Enabled = true
+        Enabled = true,
+        Forced = false,
+        Visible = true,
     }
 }
 

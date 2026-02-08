@@ -22,7 +22,7 @@ public class AletrisSandboxModuleSession : EverestModuleSession
     public bool CircleMadelineEnabled { get; set; }
     public float CircleMadelineRadius { get; set; } = 6f;
 
-    public bool mouseControlsPause { get; set; }
+    public bool[] mouseControlsState { get; set; } = [false, false]; // paused, locked, idrk why i hate making it 2 different things
 
     public bool RelativisticVelocityEnabled { get; set; }
 }

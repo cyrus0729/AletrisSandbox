@@ -13,7 +13,7 @@ public class AletrisSandboxModuleSettings : EverestModuleSettings
     public HitboxMenu.HitboxOffsetMenu HitboxOffsetOptions { get; set; } = new();
     public MiscMenu MiscelleaneousMenu { get; set; } = new();
 
-    [DefaultButtonBinding(button: Buttons.A, key: Keys.C)]
+    [DefaultButtonBinding(button: Buttons.Y, key: Keys.C)]
     public ButtonBinding BulletFirekey { get; set; }
 
     [DefaultButtonBinding(button:Buttons.Start,key:Keys.M)]

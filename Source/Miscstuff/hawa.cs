@@ -125,4 +125,31 @@ public class Hawa
 
         return new Hitbox(8f, 8f, -4f, -8f);
     }
+
+    public static void origUpdCollideHook_1(On.Celeste.Player.orig_Update orig, Player self) // uhh idrk what to do to swap4
+    {
+        if (!self.Dead && self.StateMachine.State != 21)
+        {
+            Collider collider = self.Collider;
+            self.Collider = self.hurtbox;
+
+            using (List<Component>.Enumerator enumerator = self.Scene.Tracker.GetComponents<PlayerCollider>().GetEnumerator())
+            {
+                while (enumerator.MoveNext())
+                {
+                    if ((((PlayerCollider)enumerator.Current)!).Check(self) && self.Dead)
+                    {
+                        self.Collider = collider;
+
+                        return;
+                    }
+                }
+            }
+
+            if (self.Collider == self.hurtbox)
+            {
+                self.Collider = collider;
+            }
+        }
+    }
 }

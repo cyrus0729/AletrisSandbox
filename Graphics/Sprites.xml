@@ -12,22 +12,20 @@
     </MiniNeedleEntity>
 
     <CherryEntity path="danger/AletrisSandbox/CherryEntity/" start="idle">
-			<Justify x="0.5" y="0.5"/>
         <Loop id="idle" path="idle" delay="0.5"/>
     </CherryEntity>
 
     <CherryEntityBig path="danger/AletrisSandbox/CherryEntity/" start="idle">
-        <Justify x="0.5" y="0.5"/>
 		<Loop id="idle" path="bigidle" delay="0.5"/>
     </CherryEntityBig>
 
     <DeathCubeEntity path="danger/AletrisSandbox/DeathCubeEntity/" start="idle">
-		<Justify x="0.5" y="0.5"/>	
+		<Center/>
 		<Loop id="idle" path="idle" delay="0.1"/>
     </DeathCubeEntity>
 
     <InteractiveEntity path="characters/AletrisSandbox/InteractiveEntity/" start="sunnyIdle">
-		<Origin x="8" y="16"/>
+		<Center/>
 		<Loop id="sunnyIdle" path="sunny/idle" delay="0.5" frames="0-4" />
 		<Loop id="sunnyPetting" path="sunny/pet" delay="0.25" frames="0-10" />
 		<Loop id="birdIdle" path="bird/crow" delay="0" frames="0-47" />
@@ -48,6 +46,34 @@
 		<Origin x="-0.5" y="-0.5"/>
 		<Loop id="Aura" path="Aura" delay="0.1"/>
     </BHAura>
+	
+	<MouseController path="objects/AletrisSandbox/MouseController/" start="-"> 
+		<Center/>
+		<Loop id="-" path="idle" delay="0.1"/>
+    </MouseController>
+	
+	<HitboxController path="objects/AletrisSandbox/HitboxController/" start="on"> 
+		<Center/>
+		<Loop id="on" path="catplushthebubble" delay="0.1"/>
+		<Loop id="off" path="catplushthenuhble" delay="0.1"/>
+    </HitboxController>
+	
+	<IWBTGun path="AletrisSandbox/gun/" start="-"> 
+		<Loop id="-" path="gun" delay="0.1"/>
+    </IWBTGun>
+	
+	<IWBTBullet path="AletrisSandbox/gun/" start="-"> 
+		<Loop id="-" path="bullet" delay="0.1"/>
+    </IWBTBullet>
 
+	<IWBTCross path="AletrisSandbox/gun/" start="-"> 
+		<Loop id="-" path="crosshair" delay="0.1"/>
+    </IWBTCross>
+	
+	<BulletRedirector path="objects/AletrisSandbox/BulletRedirector/" start="idle"> 
+		<Center/>
+		<Loop id="idle" path="idle" delay="0"/>
+		<Anim id="active" path="active" delay="0.05"/>
+    </BulletRedirector>
 
 </Sprites>

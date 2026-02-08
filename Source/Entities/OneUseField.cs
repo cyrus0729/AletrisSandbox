@@ -5,7 +5,7 @@ using Monocle;
 namespace Celeste.Mod.AletrisSandbox.Entities;
 
 [CustomEntity("AletrisSandbox/OneUseField")]
-public class OneUseField : Entity
+public class OneUseField : Solid
 {
     public Color color;
     public Color BorderColor;
@@ -24,25 +24,27 @@ public class OneUseField : Entity
     bool kill;
     public PlayerCollider pc;
     bool hasCollided;
+    bool active;
 
-    public OneUseField(EntityData data, Vector2 offset) : base(data.Position + offset)
+    public OneUseField(EntityData data, Vector2 offset) : base(data.Position + offset, data.Width, data.Height, true)
     {
+        Collidable = false;
         killplayer = data.Bool("kill");
         depth = data.Int("Depth", 8500);
         Depth = depth;
-        color = data.HexColor("inactiveolor", Calc.HexToColor("#00FF00"));
-        BorderColor = data.HexColor("inactivebordercolor", Calc.HexToColor("#008800"));
-        ActiveColor = data.HexColor("activecolor", Calc.HexToColor("#FF0000"));
-        ActiveBorderColor = data.HexColor("activebordercolor", Calc.HexToColor("#880000"));
-        ActivatingColor = data.HexColor("activatingcolor", Calc.HexToColor("#FFFF00"));
-        ActivatingBorderColor = data.HexColor("activatingbordercolor", Calc.HexToColor("#888800"));
+        color = data.HexColor("InactiveColor", Calc.HexToColor("#00FF00"));
+        BorderColor = data.HexColor("InactiveBorderColor", Calc.HexToColor("#008800"));
+        ActiveColor = data.HexColor("ActiveColor", Calc.HexToColor("#FF0000"));
+        ActiveBorderColor = data.HexColor("ActiveBorderColor", Calc.HexToColor("#880000"));
+        ActivatingColor = data.HexColor("ActivatingColor", Calc.HexToColor("#FFFF00"));
+        ActivatingBorderColor = data.HexColor("ActivatingBorderColor", Calc.HexToColor("#888800"));
         Collider = new Hitbox(data.Width, data.Height);
         Add(pc = new(OnCollide));
     }
 
-    void OnCollide(Player player)
+    internal new void OnCollide(Player player)
     {
-        if (OnCollide != null && kill)
+        if (kill)
             player.Die((player.Center - Center).SafeNormalize());
     }
 
@@ -60,24 +62,46 @@ public class OneUseField : Entity
             currentRectBorderColor = ActivatingBorderColor;
         }
 
-        if (hasCollided && !check) // player left
+        if (!active && hasCollided && !check) // player left
         {
+            active = true;
             currentRectColor = ActiveColor;
             currentRectBorderColor = ActiveBorderColor;
 
             switch (kill)
             {
                 case true:
-                    kill = true;
-
-                    break;
+                    kill = true; break;
                 case false:
-                    Scene.Add(new Solid(Position, Width, Height, true));
-
-                    break;
+                    Collidable = true; break;
             }
             hasCollided = false;
         }
+
+        foreach (StaticMover staticMover in staticMovers)
+        {
+            staticMover.Entity.Depth = depth - 1;
+
+            Spikes spikes = staticMover.Entity as Spikes;
+            if (spikes != null)
+            {
+                spikes.EnabledColor = currentRectBorderColor;
+                spikes.DisabledColor = currentRectBorderColor;
+                spikes.VisibleWhenDisabled = true;
+                spikes.SetSpikeColor(currentRectBorderColor);
+            }
+
+            Spring spring = staticMover.Entity as Spring;
+            if (spring != null)
+            {
+                spring.DisabledColor = currentRectBorderColor;
+                spring.VisibleWhenDisabled = true;
+            }
+        }
+
+        if (Collidable) { EnableStaticMovers(); }
+        else { DisableStaticMovers(); }
+
     }
 
     public override void Added(Scene scene)
@@ -89,8 +113,8 @@ public class OneUseField : Entity
 
     public override void Render()
     {
-        Draw.HollowRect(Collider, currentRectBorderColor);
         Draw.Rect(Collider, currentRectColor);
+        Draw.HollowRect(Collider, currentRectBorderColor);
         base.Render();
     }
 }

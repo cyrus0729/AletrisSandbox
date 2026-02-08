@@ -32,36 +32,28 @@ public class IWBTGBullet : Actor
         onCollideH += OnCollideH;
         onCollideV += OnCollideV;
 
-        lifetime = 6000;
+        lifetime = 600;
 
     #pragma warning disable CL013
         owner.SceneAs<Level>().Add(this);
     #pragma warning restore CL013
-        Add(new Image(GFX.Game["AletrisSandbox/gun/bullet"]));
+        Add(GFX.SpriteBank.Create("IWBTBullet"));
     }
 
     void OnCollideH(CollisionData data)
     {
-        if (!(AletrisSandboxModule.Settings.IWBTOptions.IWBTGGunHitsStuffOverride || AletrisSandboxModule.Session.IWBTGGunHitsStuff))
+        foreach (var v in data.GetType().GetProperties())
         {
-            Kill();
-
-            return;
+            Logger.Log(LogLevel.Info, nameof(AletrisSandboxModule), v.ToString());
         }
-        if (data.Hit.ToString() == "Celeste.SolidTiles")
-            Kill();
+        if (data.Hit.OnDashCollide != null) { data.Hit.OnDashCollide.Invoke(owner, velocity); }
+        Kill();
     }
 
     void OnCollideV(CollisionData data)
     {
-        if (!(AletrisSandboxModule.Settings.IWBTOptions.IWBTGGunHitsStuffOverride || AletrisSandboxModule.Session.IWBTGGunHitsStuff))
-        {
-            Kill();
-
-            return;
-        }
-        if (data.Hit.ToString() == "Celeste.SolidTiles")
-            Kill();
+        if (data.Hit.OnDashCollide != null) { data.Hit.OnDashCollide.Invoke(owner, velocity); }
+        Kill();
     }
 
     public override void Update()
@@ -92,13 +84,13 @@ public class IWBTGBullet : Actor
         {
             var co = (BulletCollider)component;
 
-            if (co != null && co.Check(this))
-            {
-                if (dead)
-                    return;
+            if (co == null || !co.Check(this))
+                continue;
 
-                co.OnCollide(this);
-            }
+            if (dead)
+                return;
+
+            co.OnCollide(this);
         }
     }
 

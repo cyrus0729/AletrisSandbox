@@ -32,20 +32,11 @@ public class AletrisSandboxModule : EverestModule
         Logger.SetLogLevel(nameof(AletrisSandboxModule), LogLevel.Info);
     #endif
     }
-
-    public static MTexture gunTexture;
-    static Texture2D crossTexture;
-
-    static Vector2 oldMouseCursorPos = Vector2.Zero;
-    static Vector2 CursorPos = Vector2.Zero;
-
     static MouseState State => Mouse.GetState();
     static Vector2 MouseCursorPos => Vector2.Transform(new(State.X, State.Y), Matrix.Invert(Engine.ScreenMatrix));
 
     public override void LoadContent(bool firstLoad)
     {
-        gunTexture = GFX.Game["AletrisSandbox/gun/gun"];
-        crossTexture = GFX.Game["AletrisSandbox/gun/crosshair"].Texture.Texture;
     }
 
     void EverestExitMethod(Level level, LevelExit exit, LevelExit.Mode mode, Session session, HiresSnow snow)
@@ -88,13 +79,13 @@ public class AletrisSandboxModule : EverestModule
         var flip = SpriteEffects.None;
         Vector2 offset;
 
-        var gunVector = ToCursor(self, CursorPos);
+        var gunVector = ToCursor(self, MouseCursorPos);
 
         float gunRotation;
 
         if (Settings.IWBTOptions.IWBTGGunAimOverride || Session.IWBTGGunMouseAimEnabled)
         {
-            self.Facing = (Facings)Math.Sign(ToCursor(self, CursorPos).X);
+            self.Facing = (Facings)Math.Sign(ToCursor(self, MouseCursorPos).X);
             if (self.Facing == 0)
                 self.Facing = Facings.Right;
             gunRotation = ToRotation(gunVector);
@@ -123,6 +114,7 @@ public class AletrisSandboxModule : EverestModule
             }
         }
 
+        MTexture gunTexture = GFX.SpriteBank.Create("IWBTGun").Texture;
         gunTexture.DrawJustified(
             self.Center,
             offset,
@@ -136,15 +128,24 @@ public class AletrisSandboxModule : EverestModule
     {
         orig(self);
 
-        if (!(Settings.IWBTOptions.IWBTGGunEnableOverride || Session.IWBTGGunEnabled))
-            return;
-        if (!(Settings.IWBTOptions.IWBTGGunAimOverride || Session.IWBTGGunMouseAimEnabled))
-            return;
+        if (Settings.PauseMouseControls.Pressed)
+        {
+            Session.mouseControlsState[0] = !Session.mouseControlsState[0];
+        }
+
+        if (!Session.mouseControlsState[0] && !Session.mouseControlsState[1] || self.Tracker.GetEntities<MouseController>().Count == 0) // no mouse controls
+        {
+            if (!(Settings.IWBTOptions.IWBTGGunEnableOverride || Session.IWBTGGunEnabled))
+                return;
+            if (!(Settings.IWBTOptions.IWBTGGunAimOverride || Session.IWBTGGunMouseAimEnabled))
+                return;
+        }
 
         Draw.SpriteBatch.Begin(0, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone, null, Engine.ScreenMatrix);
 
         var aimColor = self.Tracker.CountEntities<IWBTGBullet>() >= Session.MaxBullets ? Color.Red : Color.White;
-        Draw.SpriteBatch.Draw(crossTexture, CursorPos, null, aimColor, 0f, new(crossTexture.Width / 2f, crossTexture.Height / 2f), 4f, 0, 0f);
+        Texture2D crossTexture = GFX.SpriteBank.Create("IWBTCross").Texture.Texture.Texture;
+        Draw.SpriteBatch.Draw(crossTexture, MouseCursorPos, null, aimColor, 0f, new(crossTexture.Width / 2f, crossTexture.Height / 2f), 4f, 0, 0f);
         Draw.SpriteBatch.End();
     }
 
@@ -161,8 +162,6 @@ public class AletrisSandboxModule : EverestModule
 
         foreach (var component in components)
             component.Entity.Collidable = false;
-        oldMouseCursorPos = CursorPos;
-        CursorPos = MouseCursorPos;
 
         /*if (self.Scene != null || self.Scene.TimeActive <= 0f || (TalkComponent.PlayerOver != null && Input.Talk.Pressed))
         {
@@ -187,11 +186,11 @@ public class AletrisSandboxModule : EverestModule
         {
             if (Settings.IWBTOptions.IWBTGGunAimOverride || Session.IWBTGGunMouseAimEnabled)
             {
-                var _ = new IWBTGBullet(mouseposition, ToCursor(self, CursorPos) * 5f, self);
+                _ = new IWBTGBullet(mouseposition, ToCursor(self, MouseCursorPos) * 5f, self);
             }
             else
             {
-                var _ = new IWBTGBullet(position, (self.Facing == Facings.Left ? new(-1, 0) : new Vector2(1, 0)) * 5f, self);
+                _ = new IWBTGBullet(position, (self.Facing == Facings.Left ? new(-1, 0) : new Vector2(1, 0)) * 5f, self);
             }
 
             if (Settings.IWBTOptions.GunSound > 0)
@@ -276,7 +275,7 @@ public class AletrisSandboxModule : EverestModule
             return;
 
         Draw.Circle(self.Center, Session.CircleMadelineEnabled ? Session.CircleMadelineRadius : Settings.MiscelleaneousMenu.CircleMadelineRadius, Color.Red, 25);
-        Draw.Rect(self.Collider, Color.Red);
+        Draw.HollowRect(self.Collider, Color.Red);
     }
 
     static void HPLevelUpdate(On.Celeste.Level.orig_Update orig, Level self)
@@ -353,8 +352,19 @@ public class AletrisSandboxModule : EverestModule
     //    joystickAim?.Deregister();
     //}
 
+    public static void MouseControllerCheck(On.Celeste.Player.orig_Update orig, Player self)
+    {
+        if (self.SceneAs<Level>().Tracker.CountEntities<MouseController>() == 0)
+        {
+            Binds.MoveX.SetValue(0);
+            Binds.MoveY.SetValue(0);
+            Binds.Aim.SetDirection(Vector2.Zero);
+            Binds.Feather.SetDirection(Vector2.Zero);
+        }
+        orig(self);
+    }
 
-    // somebody tell me how the FUCK do i add a lib reference again
+    // somebody tell me how the FUCK do I add a lib reference again
 
 	private static void ResetInput()
 	{
@@ -415,6 +425,7 @@ public class AletrisSandboxModule : EverestModule
         On.Celeste.Level.Update += HPLevelUpdate;
         On.Celeste.Player.NormalUpdate += Player_IWBTJumpUpdate;
         On.Celeste.Player.Update += UnholdableBarrier_Player_Update;
+        On.Celeste.Player.Update += MouseControllerCheck;
 
         // TODO: apply any hooks that should always be active
     }
@@ -430,6 +441,7 @@ public class AletrisSandboxModule : EverestModule
         On.Celeste.Level.Update -= HPLevelUpdate;
         On.Celeste.Player.NormalUpdate -= Player_IWBTJumpUpdate;
         On.Celeste.Player.Update -= UnholdableBarrier_Player_Update;
+        On.Celeste.Player.Update -= MouseControllerCheck;
 
         // TODO: unapply any hooks applied in Load()
     }

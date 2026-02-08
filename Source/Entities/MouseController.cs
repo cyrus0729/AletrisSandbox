@@ -10,15 +10,22 @@ using Monocle;
 namespace Celeste.Mod.AletrisSandbox.Entities;
 
 [CustomEntity("AletrisSandbox/MouseController")]
+[Tracked]
 public class MouseController : Entity
 {
 
 	public bool enabled;
+    public bool forced;
+    public bool visible;
 
     public MouseController(EntityData data, Vector2 offset)
         : base(data.Position + offset)
     {
-        enabled = data.Bool("Enabled", false);
+        enabled = data.Bool("Enabled");
+        forced = data.Bool("Forced");
+        visible = data.Bool("Visible");
+
+        if (visible) { Add(GFX.SpriteBank.Create("MouseController")); }
     }
 
     public void Unload(Level level, LevelData next, Vector2 direction)
@@ -33,13 +40,15 @@ public class MouseController : Entity
     {
         base.Update();
 
-        if (AletrisSandboxModule.Settings.PauseMouseControls.Pressed)
+        AletrisSandboxModule.Session.mouseControlsState[1] = forced;
+
+        if (AletrisSandboxModule.Session.mouseControlsState[1])
         {
-            AletrisSandboxModule.Session.mouseControlsPause = !AletrisSandboxModule.Session.mouseControlsPause;
+            MInput.Keyboard.CurrentState = new();
         }
 
-
-        if (!enabled || AletrisSandboxModule.Session.mouseControlsPause)
+        // not forced and enabled and isn't paused
+        if (!AletrisSandboxModule.Session.mouseControlsState[1] && enabled && !AletrisSandboxModule.Session.mouseControlsState[0])
         {
             Binds.MoveX.SetValue(0);
             Binds.MoveY.SetValue(0);
@@ -93,6 +102,10 @@ public class MouseController : Entity
 
         if (MInput.Mouse.PressedRightButton) // dash
         {
+            Binds.MoveX.SetValue(toCursorNormal.X);
+            Binds.MoveY.SetValue(toCursorNormal.Y);
+            Binds.Aim.SetDirection(toCursorNormal);
+            Binds.Feather.SetDirection(toCursorNormal);
             Binds.Dash.Press();
         }
         else
