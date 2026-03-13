@@ -124,22 +124,18 @@ public class AletrisSandboxModule : EverestModule
             flip);
     }
 
-    static void GunLevelRender(On.Celeste.Level.orig_Render orig, Level self)
+    static void CrosshairRender(On.Celeste.Level.orig_Render orig, Level self)
     {
         orig(self);
 
-        if (Settings.PauseMouseControls.Pressed)
+        if (Settings.PauseMouseControls.Pressed) // toggle mouse controls
         {
             Session.mouseControlsState[0] = !Session.mouseControlsState[0];
         }
 
-        if (!Session.mouseControlsState[0] && !Session.mouseControlsState[1] || self.Tracker.GetEntities<MouseController>().Count == 0) // no mouse controls
-        {
-            if (!(Settings.IWBTOptions.IWBTGGunEnableOverride || Session.IWBTGGunEnabled))
-                return;
-            if (!(Settings.IWBTOptions.IWBTGGunAimOverride || Session.IWBTGGunMouseAimEnabled))
-                return;
-        }
+        if (Settings.IWBTOptions.IWBTGGunAimOverride || Session.IWBTGGunMouseAimEnabled) { return;} // if iwbtg mouse aim is enabled, keep drawing
+        if (!Session.mouseControlsState[1]) { return; }
+        if (!Session.mouseControlsState[0]) { return; }
 
         Draw.SpriteBatch.Begin(0, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullNone, null, Engine.ScreenMatrix);
 
@@ -419,7 +415,7 @@ public class AletrisSandboxModule : EverestModule
         VanillaHooks.Load();
         On.Celeste.Player.Render += GunPlayerRender;
         On.Celeste.Player.Update += GunPlayerUpdate;
-        On.Celeste.Level.Render += GunLevelRender;
+        On.Celeste.Level.Render += CrosshairRender;
         On.Celeste.Player.Render += HitboxPlayerRender;
         On.Celeste.Player.Update += HitboxPlayerUpdate;
         On.Celeste.Level.Update += HPLevelUpdate;
@@ -435,7 +431,7 @@ public class AletrisSandboxModule : EverestModule
         VanillaHooks.Unload();
         On.Celeste.Player.Render -= GunPlayerRender;
         On.Celeste.Player.Update -= GunPlayerUpdate;
-        On.Celeste.Level.Render -= GunLevelRender;
+        On.Celeste.Level.Render -= CrosshairRender;
         On.Celeste.Player.Render -= HitboxPlayerRender;
         On.Celeste.Player.Update -= HitboxPlayerUpdate;
         On.Celeste.Level.Update -= HPLevelUpdate;

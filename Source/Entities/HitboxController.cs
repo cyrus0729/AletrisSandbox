@@ -30,14 +30,14 @@ public class HitboxController : Entity
 
     public HitboxController(EntityData data, Vector2 offset) : base(data.Position + offset)
     {
-        newHitbox = Hawa.ParseCollider(data.Attr("Hitbox"));
-        newHurtbox = Hawa.ParseCollider(data.Attr("Hurtbox"));
+        newHitbox = Utils.ParseCollider(data.Attr("Hitbox"));
+        newHurtbox = Utils.ParseCollider(data.Attr("Hurtbox"));
 
-        newduckHitbox = Hawa.ParseCollider(data.Attr("duckHitbox"));
-        newduckHurtbox = Hawa.ParseCollider(data.Attr("duckHurtbox"));
+        newduckHitbox = Utils.ParseCollider(data.Attr("duckHitbox"));
+        newduckHurtbox = Utils.ParseCollider(data.Attr("duckHurtbox"));
 
-        newfeatherHitbox = Hawa.ParseCollider(data.Attr("featherHitbox"));
-        newfeatherHurtbox = Hawa.ParseCollider(data.Attr("featherHurtbox"));
+        newfeatherHitbox = Utils.ParseCollider(data.Attr("featherHitbox"));
+        newfeatherHurtbox = Utils.ParseCollider(data.Attr("featherHurtbox"));
 
         ModifyHitbox = data.Bool("modifyHitbox");
 

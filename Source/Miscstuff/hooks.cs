@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography.X509Certificates;
+﻿using System.Runtime.CompilerServices;
+using System.Security.Cryptography.X509Certificates;
 using Celeste.Mod.AletrisSandbox.Entities;
 using Microsoft.Xna.Framework;
 using Monocle;
@@ -21,7 +22,6 @@ namespace Celeste.Mod.AletrisSandbox.GunSupport
         public static void Load()
         {
             On.Celeste.CrystalStaticSpinner.ctor_Vector2_bool_CrystalColor += CrystalSpinnerHook;
-            On.Celeste.CrushBlock.ctor_Vector2_float_float_Axes_bool += KevinHook;
             On.Celeste.FlyFeather.ctor_Vector2_bool_bool += FeatherHook;
             On.Celeste.Bumper.ctor_Vector2_Nullable1 += BumperHook;
             On.Celeste.Seeker.ctor_EntityData_Vector2 += SeekerHook;
@@ -34,7 +34,6 @@ namespace Celeste.Mod.AletrisSandbox.GunSupport
         public static void Unload()
         {
             On.Celeste.CrystalStaticSpinner.ctor_Vector2_bool_CrystalColor -= CrystalSpinnerHook;
-            On.Celeste.CrushBlock.ctor_Vector2_float_float_Axes_bool -= KevinHook;
             On.Celeste.FlyFeather.ctor_Vector2_bool_bool -= FeatherHook;
             On.Celeste.Bumper.ctor_Vector2_Nullable1 -= BumperHook;
             On.Celeste.Seeker.ctor_EntityData_Vector2 -= SeekerHook;
@@ -63,29 +62,6 @@ namespace Celeste.Mod.AletrisSandbox.GunSupport
 
             orig(self, position, attachToSolid, color);
             self.Add(new BulletCollider(CollisionHandler, self.Collider));
-        }
-
-        private static void KevinHook(On.Celeste.CrushBlock.orig_ctor_Vector2_float_float_Axes_bool orig,
-                                      CrushBlock self,
-                                      Vector2 position,
-                                      float width,
-                                      float height,
-                                      CrushBlock.Axes axes,
-                                      bool chillOut)
-        {
-            void CollisionHandler(IWBTGBullet bullet)
-            {
-                if (!CanDoShit(bullet.owner)) { return; }
-
-                if (!(AletrisSandboxModule.Settings.IWBTOptions.IWBTGGunHitsStuffOverride || AletrisSandboxModule.Session.IWBTGGunHitsStuff)) { return; }
-                self.Attack(-bullet.velocity.SafeNormalize());
-                bullet.Kill();
-            }
-
-            orig(self, position, width, height, axes, chillOut);
-
-            Collider collidere = new Hitbox(self.Width + 4f, self.Height + 4f, self.Collider.Left - 2f, self.Collider.Top - 2f);
-            self.Add(new BulletCollider(CollisionHandler, collidere));
         }
 
         private static void FeatherHook(On.Celeste.FlyFeather.orig_ctor_Vector2_bool_bool orig, FlyFeather self, Vector2 position, bool shielded, bool singleUse)

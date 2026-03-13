@@ -61,7 +61,8 @@
             <![CDATA[
                 var projectDir = Path.Combine(@"$(ProjectDir)", ".."); // Go one level up, since we're inside the 'Source' directory
                 projectDir = Uri.UnescapeDataString(projectDir);
-            
+                Console.WriteLine("Making Zip...");
+
                 if (File.Exists(OutputPath))
                     File.Delete(OutputPath);
 

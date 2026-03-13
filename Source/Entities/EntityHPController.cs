@@ -10,7 +10,7 @@ using Monocle;
 namespace Celeste.Mod.AletrisSandbox.Entities;
 
 [CustomEntity("AletrisSandbox/EntityHPController")]
-public class EntityHPController : Hawa.Wrapper
+public class EntityHPController : Utils.Wrapper
 {
     public int HP;
     public int dmg;

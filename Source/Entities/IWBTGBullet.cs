@@ -29,8 +29,8 @@ public class IWBTGBullet : Actor
         Depth = 100;
         Collider = new Hitbox(4f, 4f);
 
-        onCollideH += OnCollideH;
-        onCollideV += OnCollideV;
+        onCollideH += OnCollide;
+        onCollideV += OnCollide;
 
         lifetime = 600;
 
@@ -40,19 +40,25 @@ public class IWBTGBullet : Actor
         Add(GFX.SpriteBank.Create("IWBTBullet"));
     }
 
-    void OnCollideH(CollisionData data)
+    void OnCollide(CollisionData data)
     {
-        foreach (var v in data.GetType().GetProperties())
+        if (data.Hit != null && data.Hit.OnDashCollide != null)
         {
-            Logger.Log(LogLevel.Info, nameof(AletrisSandboxModule), v.ToString());
+            DashCollisionResults collisionResults = data.Hit.OnDashCollide(owner, velocity.SafeNormalize());
+            if (collisionResults == DashCollisionResults.NormalOverride)
+                collisionResults = DashCollisionResults.NormalCollision;
+            switch (collisionResults)
+            {
+                case DashCollisionResults.Rebound:
+                    velocity = -0.5f * velocity;
+                    return;
+                case DashCollisionResults.Bounce:
+                    velocity = -velocity;
+                    return;
+                case DashCollisionResults.Ignore:
+                    return;
+            }
         }
-        if (data.Hit.OnDashCollide != null) { data.Hit.OnDashCollide.Invoke(owner, velocity); }
-        Kill();
-    }
-
-    void OnCollideV(CollisionData data)
-    {
-        if (data.Hit.OnDashCollide != null) { data.Hit.OnDashCollide.Invoke(owner, velocity); }
         Kill();
     }
 

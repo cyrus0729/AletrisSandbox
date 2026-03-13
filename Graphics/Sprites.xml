@@ -12,10 +12,12 @@
     </MiniNeedleEntity>
 
     <CherryEntity path="danger/AletrisSandbox/CherryEntity/" start="idle">
+		<Justify x="0.5" y="0.5"/>
         <Loop id="idle" path="idle" delay="0.5"/>
     </CherryEntity>
 
     <CherryEntityBig path="danger/AletrisSandbox/CherryEntity/" start="idle">
+		<Justify x="0.5" y="0.5"/>
 		<Loop id="idle" path="bigidle" delay="0.5"/>
     </CherryEntityBig>
 

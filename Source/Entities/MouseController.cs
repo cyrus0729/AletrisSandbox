@@ -21,7 +21,6 @@ public class MouseController : Entity
     public MouseController(EntityData data, Vector2 offset)
         : base(data.Position + offset)
     {
-        enabled = data.Bool("Enabled");
         forced = data.Bool("Forced");
         visible = data.Bool("Visible");
 
@@ -34,6 +33,13 @@ public class MouseController : Entity
         Binds.MoveY.SetValue(0);
         Binds.Aim.SetDirection(Vector2.Zero);
         Binds.Feather.SetDirection(Vector2.Zero);
+        Binds.MoveX.SetValue(0);
+        Binds.MoveY.SetValue(0);
+        Binds.Aim.SetDirection(Vector2.Zero);
+        Binds.Feather.SetDirection(Vector2.Zero);
+        Binds.Dash.Release();
+        Binds.Jump.Release();
+        Binds.Grab.Release();
     }
 
     public override void Update()
@@ -41,19 +47,17 @@ public class MouseController : Entity
         base.Update();
 
         AletrisSandboxModule.Session.mouseControlsState[1] = forced;
-
-        if (AletrisSandboxModule.Session.mouseControlsState[1])
-        {
-            MInput.Keyboard.CurrentState = new();
-        }
-
-        // not forced and enabled and isn't paused
-        if (!AletrisSandboxModule.Session.mouseControlsState[1] && enabled && !AletrisSandboxModule.Session.mouseControlsState[0])
+        //MInput.Disabled = !AletrisSandboxModule.Session.mouseControlsState[1];
+        // not forced and not enabled and isn't paused
+        if (!AletrisSandboxModule.Session.mouseControlsState[1] && !AletrisSandboxModule.Session.mouseControlsState[0])
         {
             Binds.MoveX.SetValue(0);
             Binds.MoveY.SetValue(0);
             Binds.Aim.SetDirection(Vector2.Zero);
             Binds.Feather.SetDirection(Vector2.Zero);
+            Binds.Dash.Release();
+            Binds.Jump.Release();
+            Binds.Grab.Release();
             return;
         }
 
@@ -63,7 +67,7 @@ public class MouseController : Entity
         var toCursor = AletrisSandboxModule.ToCursor(player, MouseCursorPos, false);
         var toCursorNormal = toCursor.SafeNormalize();
 
-        if (SceneAs<Level>().InCutscene || player == null)
+        if (SceneAs<Level>().InCutscene || player == null || Scene is Editor.MapEditor)
             return;
 
         // Logger.Log(LogLevel.Info, nameof(AletrisSandboxModule), MouseCursorPos.ToString()+toCursorNormal.ToString());
@@ -82,11 +86,11 @@ public class MouseController : Entity
             Binds.MoveY.SetValue(toCursorNormal.Y);
         }
 
-        if (MInput.Mouse.CheckLeftButton) // jump
+        if (MInput.Mouse.PressedLeftButton) // on button JUST pressed
         {
             Binds.Jump.Press();
         }
-        else
+        else if (!MInput.Mouse.CheckLeftButton) // button released
         {
             Binds.Jump.Release();
         }

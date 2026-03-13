@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 
 namespace Celeste.Mod.AletrisSandbox;
@@ -7,7 +8,7 @@ using Monocle;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
 
-public class Hawa
+public static class Utils
 {
     public abstract class Wrapper(Vector2 position) : Entity(position)
     {
@@ -54,7 +55,6 @@ public class Hawa
                     e != notEntity &&
                     e is not Wrapper &&
                     e is not TrailManager &&
-                    (typeCorrect || e is not Player || e is not Trigger) &&
                     (type?.Length == 0 || typeCorrect) &&
                     Vector2.Distance(e.Center, pos) < minDistance
                 )
@@ -152,4 +152,25 @@ public class Hawa
             }
         }
     }
+
+    public static List<Image> BuildSprite(MTexture source, Entity entity, Color color)
+    {
+        List<Image> list = new();
+        int num = source.Width / 8;
+        int num2 = source.Height / 8;
+
+        for (int i = 0; i < entity.Width; i += 8)
+        {
+            for (int j = 0; j < entity.Height; j += 8)
+            {
+                int num3 = i != 0 ? !(i >= entity.Width - 8f) ? Calc.Random.Next(1, num - 1) : num - 1 : 0;
+                int num4 = j != 0 ? !(j >= entity.Height - 8f) ? Calc.Random.Next(1, num2 - 1) : num2 - 1 : 0;
+                Image image = new(source.GetSubtexture(num3 * 8, num4 * 8, 8, 8)){Position = new Vector2(i, j), Color = color };
+                list.Add(image);
+            }
+        }
+
+        return list;
+    }
+
 }
