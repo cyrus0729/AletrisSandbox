@@ -20,10 +20,11 @@ CustomCursedMovingSolidThingy.fieldInformation = {
 	nonCollidable = { fieldType = "boolean", default = false },
 	pathColor = { fieldType = "color", allowXNAColors = true, default = "#000000" },
 	sprite = { fieldType = "string", default = "objects/AletrisSandbox/CustomCursedMovingSolidThingy/" },
+	legacy = { fieldType = "boolean", default = false }
 }
 
 CustomCursedMovingSolidThingy.fieldOrder =
-	{ "x", "y", "width", "height", "XOffset", "YOffset", "pathColor", "sprite", "nonCollidable" }
+	{ "x", "y", "width", "height", "XOffset", "YOffset", "pathColor", "sprite", "nonCollidable", "legacy" }
 
 CustomCursedMovingSolidThingy.warnBelowSize = { 16, 16 }
 
@@ -38,6 +39,7 @@ CustomCursedMovingSolidThingy.placements = {
 		nonCollidable = false,
 		pathColor = "#000000",
 		sprite = "objects/AletrisSandbox/CustomCursedMovingSolidThingy/",
+		legacy = false
 	},
 }
 
