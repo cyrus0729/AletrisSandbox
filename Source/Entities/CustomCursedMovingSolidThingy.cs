@@ -88,11 +88,6 @@ public class CustomCursedMovingSolidThingy : Solid
         base.Render();
     }
 
-    public void TravelPosition(Vector2 pos,float distance)
-    {
-
-    }
-
     public override void Update()
     {
         base.Update();
@@ -104,15 +99,74 @@ public class CustomCursedMovingSolidThingy : Solid
 
         if (nodes.Count > 1)
         {
-            Vector2 curPos = currentNode.Position;
-            float plrPosDelta = Vector2.Distance(player.Center, curPos);
 
+            if (legacy)
+            {
+                Vector2 curPos = currentNode.Position;
 
+                Vector2 bestSnappedPos = curPos;
+                float bestDistanceSq = float.MaxValue;
+                SolidThingyNode nextBestNode = null;
 
+                // check segment to next node
+                if (currentNode.nextNode != null)
+                {
+                    Vector2 path = currentNode.nextNode.Position - curPos;
+                    float len = path.Length();
 
-            // 3. Apply the Move ONCE
-            MoveTo(Collider.HalfSize + new Vector2(XOffset,YOffset),player.Position);
+                    if (len > 0)
+                    {
+                        Vector2 unit = path / len;
+                        float proj = MathHelper.Clamp(Vector2.Dot(player.Position - curPos, unit), 0, len);
+                        Vector2 snap = curPos + (unit * proj);
 
+                        float distSq = Vector2.DistanceSquared(player.Position, snap);
+                        bestSnappedPos = snap;
+                        bestDistanceSq = distSq;
+
+                        if (proj > len - 0.001f)
+                            nextBestNode = currentNode.nextNode;
+                    }
+                }
+
+                // ditto (only if closer)
+                if (currentNode.prevNode != null)
+                {
+                    Vector2 path = currentNode.prevNode.Position - curPos;
+                    float len = path.Length();
+
+                    if (len > 0)
+                    {
+                        Vector2 unit = path / len;
+                        float proj = MathHelper.Clamp(Vector2.Dot(player.Position - curPos, unit), 0, len);
+                        Vector2 snap = curPos + (unit * proj);
+
+                        float distSq = Vector2.DistanceSquared(player.Position, snap);
+
+                        if (distSq < bestDistanceSq) // if it's actually closer
+                        {
+                            bestSnappedPos = snap;
+
+                            if (proj > len - 0.001f)
+                                nextBestNode = currentNode.prevNode;
+                        }
+                    }
+                }
+
+                // 3. Apply the Move ONCE
+                MoveTo(bestSnappedPos - Collider.HalfSize + new Vector2(XOffset,YOffset));
+
+                // 4. Switch Node if needed
+                if (nextBestNode != null)
+                {
+                    currentNode = nextBestNode;
+                }
+            }
+            else
+            {
+                Logger.Log(LogLevel.Info,nameof(AletrisSandboxModule),"not implemented yet!!");
+                MoveH(player.CenterX - CenterX);
+            }
         }
         else
         {
