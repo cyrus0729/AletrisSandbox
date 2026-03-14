@@ -1,10 +1,8 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using Celeste.Mod.Entities;
+using Celeste.Mod.Helpers.LegacyMonoMod;
 using Microsoft.Xna.Framework;
 using Monocle;
-using On.Celeste.Pico8;
 
 namespace Celeste.Mod.AletrisSandbox.Entities;
 
@@ -30,11 +28,12 @@ public class CustomCursedMovingSolidThingy : Solid
     public int YOffset;
     public Color pathColor;
     public bool nonCollidable;
+    public bool legacy;
+
     public MTexture SolidSprite;
     public Image NodeSprite;
     public List<Vector2> nodes;
     public MTexture[,] NineSliceBlock;
-    public bool legacy;
 
     SolidThingyNode currentNode;
     SolidThingyNode headNode;
@@ -49,9 +48,10 @@ public class CustomCursedMovingSolidThingy : Solid
         YOffset = data.Int("YOffset");
         pathColor = data.HexColor("pathColor");
         nonCollidable = data.Bool("nonCollidable");
-        legacy = data.Bool("legacy");
         SolidSprite = GFX.Game[data.Attr("sprite")+"solid"];
         NodeSprite = new(GFX.Game[data.Attr("sprite") + "node"]);
+        legacy = data.Bool("legacy");
+
         nodes = new(data.Nodes);
 
         SolidThingyNode head = new(data.Position + offset + Collider.HalfSize);
@@ -88,95 +88,35 @@ public class CustomCursedMovingSolidThingy : Solid
         base.Render();
     }
 
-
-    private Vector2 CalculateXnaY(float targetX, Vector2 start, Vector2 end)
+    public void TravelPosition(Vector2 pos,float distance)
     {
-        float dx = end.X - start.X;
 
-        // Avoid division by zero for vertical lines
-        if (Math.Abs(dx) < 0.0001f)
-            return start;
-
-        // Find the interpolation factor 't' based on X position
-        float t = (targetX - start.X) / dx;
-
-        // Use Vector2.Lerp to find the exact point on the line
-        return Vector2.Lerp(start, end, t);
     }
-
-    private bool IsBetween(float val, float a, float b)
-    {
-        return val >= Math.Min(a, b) && val <= Math.Max(a, b);
-    }
-
-    private Vector2 GetClosestPointOnSegment(Vector2 p, Vector2 a, Vector2 b)
-    {
-        Vector2 ab = b - a;
-        float lengthSq = ab.LengthSquared();
-
-        if (lengthSq == 0)
-            return a; // A 與 B 重合
-
-        // 計算投影比例 t (0.0 到 1.0 之間)
-        float t = MathHelper.Clamp(Vector2.Dot(p - a, ab) / lengthSq, 0f, 1f);
-
-        return a + t * ab;
-    }
-
 
     public override void Update()
     {
         base.Update();
-        Player player = SceneAs<Level>().Tracker.GetEntity<Player>();
-        if (player == null) return;
 
-        if (nodes.Count == 0)
+        Player player = SceneAs<Level>().Tracker.GetEntity<Player>();
+
+        if (player == null)
+            return;
+
+        if (nodes.Count > 1)
+        {
+            Vector2 curPos = currentNode.Position;
+            float plrPosDelta = Vector2.Distance(player.Center, curPos);
+
+
+
+
+            // 3. Apply the Move ONCE
+            MoveTo(Collider.HalfSize + new Vector2(XOffset,YOffset),player.Position);
+
+        }
+        else
         {
             MoveH(player.CenterX - CenterX);
-            return;
         }
-
-        Vector2 playerPos = player.Center;
-        Vector2 bestPos = currentNode.Position;
-        float minDistanceSq = Vector2.DistanceSquared(playerPos, bestPos);
-
-        if (currentNode.nextNode != null)
-        {
-            Vector2 closest = legacy
-                                  ? GetClosestPointOnSegment(playerPos, currentNode.Position, currentNode.nextNode.Position)
-                                  : CalculateXnaY(player.CenterX, currentNode.Position, currentNode.nextNode.Position);
-
-            float distSq = Vector2.DistanceSquared(playerPos, closest);
-
-            if (distSq < minDistanceSq) // closest so far
-            {
-                bestPos = closest;
-                minDistanceSq = distSq;
-
-                if (Vector2.DistanceSquared(playerPos, currentNode.nextNode.Position) < Vector2.DistanceSquared(playerPos, currentNode.Position)) // safeguard
-                    currentNode = currentNode.nextNode;
-            }
-
-        }
-
-        // same thing as above
-        if (currentNode.prevNode != null)
-        {
-            Vector2 closest = legacy
-                                  ? GetClosestPointOnSegment(playerPos, currentNode.Position, currentNode.prevNode.Position)
-                                  : CalculateXnaY(player.CenterX, currentNode.Position, currentNode.prevNode.Position);
-                float distSq = Vector2.DistanceSquared(playerPos, closest);
-
-                if (distSq < minDistanceSq)
-                {
-                    bestPos = closest;
-
-                    if (Vector2.DistanceSquared(playerPos, currentNode.prevNode.Position) < Vector2.DistanceSquared(playerPos, currentNode.Position))
-                        currentNode = currentNode.prevNode;
-                }
-        }
-
-
-        MoveTo(bestPos - Collider.HalfSize + new Vector2(XOffset, YOffset));
     }
 }
